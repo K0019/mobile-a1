@@ -15,7 +15,7 @@
       Currently it only handles a virtual joystick control.
 
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -164,133 +164,96 @@ void AndroidInputComp::OnDetached()
 void AndroidInputComp::Update() {
 
 #if defined(__ANDROID__)
-    const auto& t = AndroidInputBridge::State();
-    const Vec2  tp = PhoneToScreen({ t.x, t.y });   // rotated to screen coords
-
     auto* entity = ecs::GetEntity(this);
     if (!entity) return;
     auto& tf = entity->GetTransform();
 
-    // ---- PRESS EDGE ----------------------------------------------------------
-    if (t.justDown) {
+    // ---- PRESS EDGE: find a new unowned pointer that just went down ----
+    int newPid = AndroidInputBridge::FindUnownedJustDown();
+    if (newPid >= 0 && !m_active) {
+        const auto& t2 = AndroidInputBridge::State(newPid);
+        const Vec2 tp = PhoneToScreen({ t2.x, t2.y });
 
         if (dynamicCenter) {
-            // Accept only if starting inside the activation rectangle
             if (inRect(tp, dynZoneMin, dynZoneMax)) {
-                if (AndroidInputBridge::TryCapture(TouchOwner::Joystick)) {
+                if (AndroidInputBridge::TryCapture(TouchOwner::Joystick, newPid)) {
                     Vec2 phoneVec = ScreenToPhone(tp);
-                    tf.SetWorldPosition(Vec3{ phoneVec.x * 0.85f,phoneVec.y , tf.GetWorldPosition().z }); //abit hack
-                    entOuterAndroidJoystick->GetTransform().SetWorldPosition(Vec3{ phoneVec.x * 0.85f,phoneVec.y , tf.GetWorldPosition().z });
+                    tf.SetWorldPosition(Vec3{ phoneVec.x * 0.85f, phoneVec.y, tf.GetWorldPosition().z });
+                    entOuterAndroidJoystick->GetTransform().SetWorldPosition(Vec3{ phoneVec.x * 0.85f, phoneVec.y, tf.GetWorldPosition().z });
                     m_anchorWorld = tf.GetWorldPosition();
-                    m_center = tp;             // dynamic center under the finger
+                    m_center = tp;
                     m_active = true;
-                    CONSOLE_LOG(LEVEL_INFO)
-                        << "[AIC] DOWN (dynamic-center) @ (" << tp.x << "," << tp.y
-                        << "), center=(" << m_center.x << "," << m_center.y << ")";
                 }
-            }
-            else {
-                // ignore presses outside the zone
-                m_active = false;          
-                CONSOLE_LOG(LEVEL_DEBUG)
-                    << "[AIC] DOWN (ignored, outside dynamic zone) @ ("
-                    << tp.x << "," << tp.y << ")";
             }
         }
         else {
-            // Fixed-center mode: take control immediately
-            if (AndroidInputBridge::TryCapture(TouchOwner::Joystick)) {
+            if (AndroidInputBridge::TryCapture(TouchOwner::Joystick, newPid)) {
                 m_anchorWorld = tf.GetWorldPosition();
                 m_active = true;
-                CONSOLE_LOG(LEVEL_INFO)
-                    << "[AIC] DOWN (fixed-center) @ (" << tp.x << "," << tp.y << ")";
             }
         }
     }
 
-    // ---- Held ---------------------------------------------------------------
-    if (t.down && m_active) {
-        const Vec2 d = tp - m_center;                           // displacement from center (px)
-        const float r = EffectiveRadius();                      // active  radius
-        const float dz = clampf(deadZoneFrac, 0.f, 0.9f) * r;   // dead zone in px
+    // ---- HELD: read from owned pointer ----
+    int ownedPid = AndroidInputBridge::GetOwnedPointer(TouchOwner::Joystick);
+    if (ownedPid >= 0 && m_active) {
+        const auto& th = AndroidInputBridge::State(ownedPid);
+        const Vec2 tp = PhoneToScreen({ th.x, th.y });
 
-        const float len2 = d.x * d.x + d.y * d.y;
-        if (len2 <= 1e-6f) {
-            // Essentially centered: output zero vector.
-            m_value = Vec2{ 0.f, 0.f };
-        }
-        else {
-            const float len = std::sqrt(len2);
-            if (len <= dz) {
-                // Inside dead-zone: no output.
+        if (th.down) {
+            const Vec2 d = tp - m_center;
+            const float r = EffectiveRadius();
+            const float dz = clampf(deadZoneFrac, 0.f, 0.9f) * r;
+
+            const float len2 = d.x * d.x + d.y * d.y;
+            if (len2 <= 1e-6f) {
                 m_value = Vec2{ 0.f, 0.f };
             }
             else {
-                // Outside dead-zone:
-                //  - clamp distance to r
-                //  - compute usable magnitude in [0..1] (dead-zone removed)
-                //  - normalize direction and (optionally) swap axes to match labels
-                const float clamped = clampf(len, 0.f, r);
-                const float usable = (clamped - dz) / (r - dz);   // [0..1]
+                const float len = std::sqrt(len2);
+                if (len <= dz) {
+                    m_value = Vec2{ 0.f, 0.f };
+                }
+                else {
+                    const float clamped = clampf(len, 0.f, r);
+                    const float usable = (clamped - dz) / (r - dz);
+                    const Vec2 dirPhone = Vec2{ d.x / len, d.y / len };
+                    const Vec2 dirScreen = Vec2{ dirPhone.y, dirPhone.x };
+                    m_value = Vec2{ dirScreen.x * usable, dirScreen.y * usable };
+                }
+            }
 
-                const Vec2  dirPhone = Vec2{ d.x / len, d.y / len };   // unit direction from touch
-                // Swap X/Y to align with your screen orientation so W=up, D=right
-                const Vec2  dirScreen = Vec2{ dirPhone.y, dirPhone.x };
-                m_value = Vec2{ dirScreen.x * usable, dirScreen.y * usable };
+            Vec3 pos = tf.GetWorldPosition();
+            const float sx = invertX ? -1.f : 1.f;
+            const float sy = invertY ? -1.f : 1.f;
+            Vec2 offset = Vec2{ sx * m_value.x, sy * m_value.y } * followWorld;
+            Vec2 m_anchorXY = Vec2{ m_anchorWorld.x, m_anchorWorld.y };
+            Vec2 targetXY = m_anchorXY + offset;
+            tf.SetWorldPosition(Vec3{ targetXY.x, targetXY.y, pos.z });
+
+            const std::string cur = labelFromValue(m_value, dirDead);
+            if (cur != m_prevDir) {
+                if (!cur.empty())
+                    CONSOLE_LOG(LEVEL_INFO) << "[AIC] DIR = " << cur << "  (v=" << m_value.x << "," << m_value.y << ")";
+                m_prevDir = cur;
             }
         }
 
-        //=====Start joystick Design ============================================================
-        Vec3  pos = tf.GetWorldPosition();   // keep pos.z unchanged
-
-        // sign flips if axis feels reversed
-        const float sx = invertX ? -1.f : 1.f;
-        const float sy = invertY ? -1.f : 1.f;
-
-        // Build target within a circle of radius followWorld centered at anchor
-        Vec2  offset = Vec2{ sx * m_value.x, sy * m_value.y } *followWorld;
-        Vec2 m_anchorXY = Vec2{ m_anchorWorld.x , m_anchorWorld.y };
-        Vec2  targetXY = m_anchorXY + offset;
-
-        // Snap (hard clamp):
-        tf.SetWorldPosition(Vec3{ targetXY.x,targetXY.y, pos.z });
-        //=====End joystick Design ============================================================
-
-
-        // Map to W/A/S/D label (with diagonals) and print only on change
-        const std::string cur = labelFromValue(m_value, dirDead);
-        if (cur != m_prevDir) {
-            if (!cur.empty())
-                CONSOLE_LOG(LEVEL_INFO) << "[AIC] DIR = " << cur << "  (v=" << m_value.x << "," << m_value.y << ")";
-            m_prevDir = cur;
-        }
-    }
-
-    // ---- release edge -------------------------------------------------------
-    if (t.justUp) {
-        if (m_active) {
-            CONSOLE_LOG(LEVEL_DEBUG) << "[AIC] UP @ (" << tp.x << ", " << tp.y << ")";
-
+        // ---- RELEASE EDGE: check if our owned pointer just went up ----
+        if (th.justUp) {
             if (recenterOnRelease) {
-                // Return to anchor so the object doesn't drift permanently
-                tf.SetWorldPosition(m_OriginalWorld); // snap back
+                tf.SetWorldPosition(m_OriginalWorld);
                 entOuterAndroidJoystick->GetTransform().SetWorldPosition(m_OriginalWorld);
-
             }
-            // Give up exclusive ownership so camera/UI can use the next touch
             AndroidInputBridge::Release(TouchOwner::Joystick);
+            m_active = false;
+            m_captured = false;
+            m_value = Vec2{ 0.f, 0.f };
+            m_prevDir.clear();
         }
-
-
-        m_active = false;
-        m_captured = false;
-        m_value = Vec2{ 0.f, 0.f };
-        m_prevDir.clear();
     }
 
-    //let the AndroidInputComp push its [-1,1]^2 each frame, and the input system consumer pull it
     AndroidInputBridge::PublishVirtualStick(m_value);
-
 #endif
 }
 

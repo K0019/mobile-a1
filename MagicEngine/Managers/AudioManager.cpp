@@ -78,6 +78,16 @@ void AudioManager::StopAllSounds()
 	masterChannelGroup->stop();
 }
 
+void AudioManager::OnAppPause()
+{
+	FMOD_ASSERT(system->mixerSuspend());
+}
+
+void AudioManager::OnAppResume()
+{
+	FMOD_ASSERT(system->mixerResume());
+}
+
 void AudioManager::SetGroupVolume(AudioType type, float vol)
 {
 	switch (type)

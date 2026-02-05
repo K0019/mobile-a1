@@ -64,7 +64,11 @@ namespace editor
 
     void ThumbnailCache::Update()
     {
-        if (!m_autoGenerateEnabled || !m_initialized) return;
+        if (!m_initialized) return;
+
+        ++m_frameCounter;
+
+        if (!m_autoGenerateEnabled) return;
 
         // Poll for async process callbacks
         util::AsyncProcessRunner::PollCallbacks();
@@ -168,7 +172,12 @@ namespace editor
             }
             if (it->second.loadAttempted)
             {
-                // Already tried and failed, don't retry every frame
+                // Meta was found but thumbnail missing/failed — don't retry
+                return 0;
+            }
+            // Transient failure (no file path or no meta yet) — throttle retries
+            if (m_frameCounter < it->second.retryFrame)
+            {
                 return 0;
             }
         }
@@ -177,6 +186,13 @@ namespace editor
         if (LoadThumbnailFromMeta(assetHash))
         {
             return m_cache[assetHash].imguiId;
+        }
+
+        // Schedule next retry for transient failures
+        auto& entry = m_cache[assetHash];
+        if (!entry.loadAttempted)
+        {
+            entry.retryFrame = m_frameCounter + RETRY_INTERVAL_FRAMES;
         }
 
         return 0;
@@ -240,14 +256,13 @@ namespace editor
 
     bool ThumbnailCache::LoadThumbnailFromMeta(size_t hash)
     {
-        // Mark that we attempted to load (to avoid retrying every frame)
         CacheEntry& entry = m_cache[hash];
-        entry.loadAttempted = true;
 
         // Get the asset's compiled file path
         std::filesystem::path assetPath = GetAssetFilePath(hash);
         if (assetPath.empty())
         {
+            // Don't set loadAttempted — path may appear later (e.g. after compilation)
             LOG_DEBUG("[ThumbnailCache] No file path for hash {}", hash);
             return false;
         }
@@ -259,9 +274,13 @@ namespace editor
 
         if (!std::filesystem::exists(metaPath))
         {
+            // Don't set loadAttempted — meta may appear later (e.g. after compilation)
             LOG_DEBUG("[ThumbnailCache] Meta file not found: {}", metaPath.string());
             return false;
         }
+
+        // Meta exists — mark as attempted so we don't re-read meta every frame
+        entry.loadAttempted = true;
 
         // Read thumbnailPath from meta
         std::string thumbnailFilename = ReadThumbnailPathFromMeta(metaPath);

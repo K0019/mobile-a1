@@ -21,6 +21,11 @@
 // VideoPlayerComponent
 // ============================================================================
 
+// Force static registration of VideoPlayerComponent on all platforms.
+// Without this, the linker may elide the inline static initializer in
+// IRegisteredComponent<VideoPlayerComponent> on Android/Clang.
+static volatile bool s_forceRegister = IRegisteredComponent<VideoPlayerComponent>::isRegistered;
+
 VideoPlayerComponent::VideoPlayerComponent()
     : m_videoFile(0)
     , m_isPlaying(false)
@@ -494,13 +499,11 @@ uint32_t VideoManager::CreateDecoder(size_t videoFileHash)
         return 0;
     }
 
-    std::string fullPath = VFS::ConvertVirtualToPhysical(fileEntry->path);
-    LOG_INFO("[VideoManager] Opening video file: {}", fullPath);
-
     auto instance = std::make_unique<DecoderInstance>();
     instance->decoder = std::make_unique<video::VideoDecoder>();
 
-    if (!instance->decoder->open(fullPath))
+    LOG_INFO("[VideoManager] Opening video: {}", fileEntry->path);
+    if (!instance->decoder->openFromVFS(fileEntry->path))
     {
         LOG_ERROR("[VideoManager] Failed to open video: {}", instance->decoder->getLastError());
         return 0;
@@ -658,6 +661,24 @@ void VideoManager::ResumeAudio(uint32_t handle)
     if (it == m_decoders.end()) return;
     if (it->second->audioChannel)
         it->second->audioChannel->setPaused(false);
+}
+
+void VideoManager::PauseAllAudio()
+{
+    for (auto& [handle, instance] : m_decoders)
+    {
+        if (instance->audioChannel)
+            instance->audioChannel->setPaused(true);
+    }
+}
+
+void VideoManager::ResumeAllAudio()
+{
+    for (auto& [handle, instance] : m_decoders)
+    {
+        if (instance->audioChannel)
+            instance->audioChannel->setPaused(false);
+    }
 }
 
 const video::VideoFrame* VideoManager::GetCurrentFrame(uint32_t handle) const

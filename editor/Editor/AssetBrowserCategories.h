@@ -81,7 +81,18 @@ namespace editor {
 	protected:
 		virtual const AssetTabConfig& GetConfig() const = 0;
 		virtual void RenderToolbar() {}
-		virtual void RenderContextMenuItems([[maybe_unused]] size_t hash) {}
+		virtual void RenderContextMenuItems([[maybe_unused]] size_t hash)
+	{
+#ifdef IMGUI_ENABLED
+		if (ImGui::MenuItem(ICON_FA_TRASH " Delete"))
+		{
+			if (selectedHash.has_value() && selectedHash.value() == hash)
+				selectedHash.reset();
+			ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceType>().DeleteResource(hash);
+			ST<AssetManager>::Get()->SaveToFile();
+		}
+#endif
+	}
 		virtual void RenderDetailPanelContent([[maybe_unused]] size_t hash, [[maybe_unused]] const std::string& name) {}
 		virtual bool ShouldShowDetailPanel([[maybe_unused]] size_t hash) { return true; }
 

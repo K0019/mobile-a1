@@ -673,7 +673,16 @@ namespace compiler
 
         extractTextureFromMap(mat->pbr.metalness, texturekeys::METALLIC_ROUGHNESS);
         extractTextureFromMap(mat->pbr.normal_map, texturekeys::NORMAL);
+        // Fallback: if no PBR normal map, try FBX normal_map, then FBX bump
+        if (slot.texturePaths.find(texturekeys::NORMAL) == slot.texturePaths.end())
+            extractTextureFromMap(mat->fbx.normal_map, texturekeys::NORMAL);
+        if (slot.texturePaths.find(texturekeys::NORMAL) == slot.texturePaths.end())
+            extractTextureFromMap(mat->fbx.bump, texturekeys::NORMAL);
+
         extractTextureFromMap(mat->pbr.emission_color, texturekeys::EMISSIVE);
+        // Fallback: if no PBR emissive texture, try FBX emission_color
+        if (slot.texturePaths.find(texturekeys::EMISSIVE) == slot.texturePaths.end())
+            extractTextureFromMap(mat->fbx.emission_color, texturekeys::EMISSIVE);
         extractTextureFromMap(mat->pbr.ambient_occlusion, texturekeys::OCCLUSION);
 
         // ===== PBR factors =====
@@ -727,6 +736,17 @@ namespace compiler
             if (mat->pbr.emission_factor.has_value)
             {
                 float factor = static_cast<float>(mat->pbr.emission_factor.value_real);
+                slot.emissiveFactor *= factor;
+            }
+        }
+        else if (mat->fbx.emission_color.has_value)
+        {
+            const auto& c = mat->fbx.emission_color.value_vec3;
+            slot.emissiveFactor = vec3(
+                static_cast<float>(c.x), static_cast<float>(c.y), static_cast<float>(c.z));
+            if (mat->fbx.emission_factor.has_value)
+            {
+                float factor = static_cast<float>(mat->fbx.emission_factor.value_real);
                 slot.emissiveFactor *= factor;
             }
         }

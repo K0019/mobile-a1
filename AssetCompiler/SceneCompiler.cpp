@@ -179,7 +179,7 @@ namespace compiler
 
         // Check for Normal Maps
         // e.g: "N00_000_00_HairBack_00_nml.normal.png", "_11.normal.png"
-        if (EndsWith(stem, "_n") || EndsWith(stem, "_nml") || EndsWith(stem, "_normal"))
+        if (EndsWith(stem, "_n") || EndsWith(stem, "_nml") || EndsWith(stem, "_normal") || EndsWith(stem, "_bump"))
         {
             newOptions.compressionFormat = GetLinearTextureFormat(defaultOptions.compressionFormat);
             newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
@@ -362,6 +362,8 @@ namespace compiler
             std::vector<std::string> texturePathErrors;
             std::filesystem::path modelBasePath = options.general.inputPath.parent_path();
             std::map<std::filesystem::path, std::filesystem::path> resolvedTexturePaths;
+            // Map source paths to their texture keys (e.g., "normal", "baseColor") for format selection
+            std::map<std::filesystem::path, std::string> sourcePathToKey;
 
             for (auto& [key, source] : uniqueTextureSources)
             {
@@ -376,6 +378,9 @@ namespace compiler
                     }
                     // This path is confirmed to exist on disk, safe to send to texturecompiler
                     resolvedTexturePaths[sourcePath] = pathResolution.finalPath;
+                    // Store the texture key for this source path (first key wins if same path used for multiple types)
+                    if (sourcePathToKey.find(sourcePath) == sourcePathToKey.end())
+                        sourcePathToKey[sourcePath] = key;
                 }
                 else
                 {
@@ -400,9 +405,47 @@ namespace compiler
                 //texOpts.general.outputPath = textureOutputDir;
                 texOpts.texture = options.texture;
 
-                // Parse filename to set specific options and isSRGB based on texture type
-                // (e.g., normal maps use BC5/ASTC with linear, color textures use BC7/ASTC with sRGB)
-                texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
+                // Use the texture key to determine format (same logic as the embedded path)
+                // Falls back to filename heuristics if key is not found
+                auto keyIt = sourcePathToKey.find(originalPath);
+                if (keyIt != sourcePathToKey.end())
+                {
+                    const std::string& texKey = keyIt->second;
+                    if (texKey == texturekeys::BASE_COLOR || texKey == texturekeys::EMISSIVE)
+                    {
+                        texOpts.texture.compressionFormat = options.texture.compressionFormat;
+                        texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                        texOpts.texture.isSRGB = true;
+                    }
+                    else if (texKey == texturekeys::NORMAL)
+                    {
+                        texOpts.texture.compressionFormat = GetLinearTextureFormat(options.texture.compressionFormat);
+                        texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                        texOpts.texture.isSRGB = false;
+                    }
+                    else if (texKey == texturekeys::METALLIC_ROUGHNESS)
+                    {
+                        texOpts.texture.compressionFormat = GetLinearTextureFormat(options.texture.compressionFormat);
+                        texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                        texOpts.texture.isSRGB = false;
+                    }
+                    else if (texKey == texturekeys::OCCLUSION)
+                    {
+                        texOpts.texture.compressionFormat = GetSingleChannelFormat(options.texture.compressionFormat);
+                        texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                        texOpts.texture.isSRGB = false;
+                    }
+                    else
+                    {
+                        // Unknown key, fall back to filename heuristics
+                        texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
+                    }
+                }
+                else
+                {
+                    // No key found, fall back to filename heuristics
+                    texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
+                }
 
                 auto texCompileResult = texCompiler.Compile(texOpts);
                 if (texCompileResult.errors.empty())

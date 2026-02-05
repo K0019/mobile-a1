@@ -104,6 +104,10 @@ bool CompileAndImportAsset(const std::string& assetRelativeFilepath)
     auto ImportList = [&](const std::vector<std::string>& compiledAssets) {
         for (const auto& path : compiledAssets)
         {
+            // Skip thumbnail artifacts — they are not importable assets
+            if (path.find("_thumb.") != std::string::npos)
+                continue;
+
             std::filesystem::path absPath = path;
             std::string toImport = VFS::ConvertPhysicalToVirtual(absPath.string());
             AssetImporter::Import(toImport);

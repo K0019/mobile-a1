@@ -25,6 +25,13 @@ public:
 
     std::string GetPhysicalPath(const std::string& path) const override;
     std::string GetPhysicalRoot() const override;
+
+    // Get a file descriptor for an uncompressed asset (for MediaCodec, etc.)
+    // Returns true if successful. fd, outOffset, outLength are output parameters.
+    bool GetAssetFileDescriptor(const std::string& path, int& outFd, off_t& outOffset, off_t& outLength) const;
+
+    AAssetManager* GetAssetManager() const { return m_AssetManager; }
+
 private:
     AAssetManager* m_AssetManager;
 

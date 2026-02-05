@@ -95,6 +95,8 @@ public:
 	void UpdateListener(const Vec3& pos, const Vec3& vel = Vec3{});
 	void ConfigureListener(float dopplerScale, float distanceFactor, float rolloffScale);
 	void StopAllSounds();
+	void OnAppPause();   // Suspend FMOD mixer (Android lifecycle)
+	void OnAppResume();  // Resume FMOD mixer (Android lifecycle)
 	void SetGroupVolume(AudioType type, float vol);
 
 #ifdef __ANDROID__

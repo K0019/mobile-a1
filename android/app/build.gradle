@@ -193,7 +193,9 @@ android {
     }
 
     aaptOptions {
-        noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json', 'meta'
+        noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json', 'meta',
+                   'mp4', 'webm', 'mkv', 'mov', 'avi',   // Video (MediaCodec needs uncompressed for fd access)
+                   'wav', 'mp3', 'ogg', 'flac'            // Audio (reliable AAsset access)
         // Exclude logs and C# project files (keep .meta for hash resolution)
         ignoreAssetsPattern '*.log:*.csproj'
     }

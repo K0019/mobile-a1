@@ -67,6 +67,27 @@ bool VFS::MountAndroidDirectory(const std::string& virtualPath, AAssetManager* a
     auto directoryBackend = std::make_shared<AndroidVFSImpl>(assetManager);
     return MountBackend(virtualPath, std::move(directoryBackend));
 }
+
+bool VFS::GetFileDescriptor(const std::string& path, int& outFd, off_t& outOffset, off_t& outLength)
+{
+    std::string normalizedPath = NormalizePath(path);
+
+    for (auto it = s_MountPoints.rbegin(); it != s_MountPoints.rend(); ++it)
+    {
+        const MountPoint& mp = *it;
+        if (normalizedPath.rfind(mp.virtualPath, 0) == 0)
+        {
+            std::string relativePath = normalizedPath.substr(mp.virtualPath.length());
+            if (!relativePath.empty() && relativePath.front() == '/')
+                relativePath = relativePath.substr(1);
+
+            auto* androidImpl = dynamic_cast<AndroidVFSImpl*>(mp.backend.get());
+            if (androidImpl)
+                return androidImpl->GetAssetFileDescriptor(relativePath, outFd, outOffset, outLength);
+        }
+    }
+    return false;
+}
 #endif
 
 bool VFS::MountDirectory(const std::string& virtualPath, const std::string& physicalPath)

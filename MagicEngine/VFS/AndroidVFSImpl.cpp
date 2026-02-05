@@ -262,6 +262,30 @@ std::string AndroidVFSImpl::GetPhysicalRoot() const
 
 
 
+bool AndroidVFSImpl::GetAssetFileDescriptor(const std::string& path, int& outFd, off_t& outOffset, off_t& outLength) const
+{
+    std::string resolvedPath = ResolvePath(path);
+    AAsset* asset = AAssetManager_open(m_AssetManager, resolvedPath.c_str(), AASSET_MODE_RANDOM);
+    if (!asset)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, MAGICENGINE_ASSET_LOG_TAG,
+                            "GetAssetFileDescriptor: failed to open '%s' (resolved='%s')", path.c_str(), resolvedPath.c_str());
+        return false;
+    }
+
+    outFd = AAsset_openFileDescriptor(asset, &outOffset, &outLength);
+    AAsset_close(asset);
+
+    if (outFd < 0)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, MAGICENGINE_ASSET_LOG_TAG,
+                            "GetAssetFileDescriptor: fd failed for '%s' (asset may be compressed in APK)", resolvedPath.c_str());
+        return false;
+    }
+
+    return true;
+}
+
 // ALL these are not supported. APK should be read only.
 // Use a DirectoryFileStream if you want to write.
 size_t AndroidFileStream::Write(const void* buffer, size_t bytesToWrite)

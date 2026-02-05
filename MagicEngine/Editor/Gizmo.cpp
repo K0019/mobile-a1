@@ -193,11 +193,9 @@ namespace editor {
         Vec2 uiPos = rectTransform->GetWorldPosition();
         Vec2 uiScale = rectTransform->GetWorldScale();
 
-        // Default size for UI elements (can be overridden later with component-specific sizes)
-        const float defaultWidth = 100.0f;
-        const float defaultHeight = 100.0f;
-        float rectWidth = defaultWidth * uiScale.x;
-        float rectHeight = defaultHeight * uiScale.y;
+        // Scale IS the size in UI units (matches how primitives render with halfScale = GetWorldScale() * 0.5f)
+        float rectWidth = uiScale.x;
+        float rectHeight = uiScale.y;
 
         // Convert UI position to screen coordinates
         // UI Y=0 is top, screen Y=0 is also top for ImGui
@@ -313,20 +311,20 @@ namespace editor {
                     switch (dragMode_)
                     {
                     case DragMode::ScaleTopLeft:
-                        scaleChangeX = -deltaX / (defaultWidth * 0.5f);
-                        scaleChangeY = -deltaY / (defaultHeight * 0.5f);
+                        scaleChangeX = -2.0f * deltaX;
+                        scaleChangeY = -2.0f * deltaY;
                         break;
                     case DragMode::ScaleTopRight:
-                        scaleChangeX = deltaX / (defaultWidth * 0.5f);
-                        scaleChangeY = -deltaY / (defaultHeight * 0.5f);
+                        scaleChangeX = 2.0f * deltaX;
+                        scaleChangeY = -2.0f * deltaY;
                         break;
                     case DragMode::ScaleBottomLeft:
-                        scaleChangeX = -deltaX / (defaultWidth * 0.5f);
-                        scaleChangeY = deltaY / (defaultHeight * 0.5f);
+                        scaleChangeX = -2.0f * deltaX;
+                        scaleChangeY = 2.0f * deltaY;
                         break;
                     case DragMode::ScaleBottomRight:
-                        scaleChangeX = deltaX / (defaultWidth * 0.5f);
-                        scaleChangeY = deltaY / (defaultHeight * 0.5f);
+                        scaleChangeX = 2.0f * deltaX;
+                        scaleChangeY = 2.0f * deltaY;
                         break;
                     default:
                         break;

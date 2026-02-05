@@ -9,6 +9,7 @@
 #ifdef _WIN32
 
 #include "video_decoder.h"
+#include "VFS/VFS.h"
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -116,6 +117,12 @@ namespace video
             other.m_state = DecoderState::Closed;
         }
         return *this;
+    }
+
+    bool VideoDecoder::openFromVFS(const std::string& vfsPath)
+    {
+        std::string physicalPath = VFS::ConvertVirtualToPhysical(vfsPath);
+        return open(physicalPath);
     }
 
     bool VideoDecoder::open(const std::string& path)
