@@ -398,6 +398,15 @@ void Lua_SimpleQueueEventNextFrame()
 	ST<EventsQueue>::Get()->AddEventForNextFrame(EventType{});
 }
 
+bool Lua_IsAndroid()
+{
+#ifdef __ANDROID__
+	return true;
+#else
+	return false;
+#endif
+}
+
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 {
 	// Reference for how to do stuff: https://kunitoki.github.io/LuaBridge3/Manual
@@ -667,6 +676,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
+		.addFunction("IsAndroid", Lua_IsAndroid)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
 		.addProperty("EngineIsFullscreen", []() -> bool { return ST<GraphicsWindow>::Get()->GetIsFullscreen(); }, [](bool isFullscreen) -> void { ST<GraphicsWindow>::Get()->SetFullscreen(isFullscreen); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })

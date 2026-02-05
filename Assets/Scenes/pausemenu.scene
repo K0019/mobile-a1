@@ -50,7 +50,7 @@
             "parentIndex": -1,
             "position": {
                 "x": 768.0,
-                "y": 595.0,
+                "y": 593.40234375,
                 "z": 2.5
             },
             "rotation": {
@@ -464,8 +464,8 @@
             "parentIndex": 4,
             "position": {
                 "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "y": -0.014392614364624023,
+                "z": -180.0
             },
             "rotation": {
                 "x": -20.0,
@@ -512,7 +512,10 @@
                     "_active": true,
                     "scripts": [
                         {
-                            "scriptName": "mainmenu_button_quit.lua"
+                            "scriptName": "menu_button_tohowtoplay_pc_frompause.lua"
+                        },
+                        {
+                            "scriptName": "menu_button_tohowtoplay_android_frompause.lua"
                         }
                     ]
                 }
@@ -638,8 +641,8 @@
             "parentIndex": 1,
             "position": {
                 "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "y": -4.76837158203125e-7,
+                "z": -30.0
             },
             "rotation": {
                 "x": -15.0,
