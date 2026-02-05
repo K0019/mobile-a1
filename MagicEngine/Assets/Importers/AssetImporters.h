@@ -46,4 +46,7 @@ namespace AssetImporters {
     // Import a game weapon file (.weapon)
     bool ImportGameWeapon(const std::string& assetRelativeFilepath);
 
+    // Import a video file (mp4, webm, mkv, etc.)
+    bool ImportVideo(const std::string& assetRelativeFilepath);
+
 } // namespace AssetImporters

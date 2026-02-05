@@ -134,8 +134,20 @@ public:
     FeatureMask& GetSceneViewFeatureMask() { return sceneViewFeatureMask; }
     const FeatureMask& GetSceneViewFeatureMask() const { return sceneViewFeatureMask; }
 
+    // UI viewport dimensions (fixed reference resolution)
+    float GetUIViewportWidth() const { return uiViewportWidth; }
+    float GetUIViewportHeight() const { return uiViewportHeight; }
+
+    // Convert window mouse position to UI coordinate space, accounting for letterboxing
+    // Returns true if the position is within the letterboxed game area, false if in black bars
+    bool WindowToUIPosition(float windowX, float windowY, float& outUIX, float& outUIY) const;
+
 private:
     FeatureMask sceneViewFeatureMask = ~FeatureMask(0); // all features on by default
+
+    // Current UI viewport dimensions (updated each frame based on window aspect ratio)
+    float uiViewportWidth = 1920.0f;
+    float uiViewportHeight = 1080.0f;
 
 };
 

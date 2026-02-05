@@ -27,6 +27,7 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "Editor/EditorHistory.h"
 #include "Editor/EditorGizmoBridge.h"
+#include "Editor/MaterialCreation.h"
 
 namespace editor {
 
@@ -81,6 +82,11 @@ namespace editor {
 		EventsReader<Events::EditorCreateEntityAndSelect>::ForEach([this](const Events::EditorCreateEntityAndSelect&) -> void {
 			selectedEntity = ecs::CreateEntity();
 			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ selectedEntity });
+		});
+
+		// Open material editor
+		EventsReader<Events::OpenMaterialEditor>::ForEach([](const Events::OpenMaterialEditor& event) -> void {
+			CreateGuiWindow<MaterialEditWindow>(event.materialHash);
 		});
 	}
 

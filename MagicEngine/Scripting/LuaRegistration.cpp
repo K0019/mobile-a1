@@ -28,6 +28,7 @@ All rights reserved.
 #include "Components/NameComponent.h"
 #include "Components/EntityReferenceHolder.h"
 #include "Engine/Audio.h"
+#include "Engine/VideoPlayer.h"
 #include "Graphics/CameraComponent.h"
 #include "Graphics/LightComponent.h"
 #include "Physics/Collision.h"  
@@ -51,6 +52,7 @@ All rights reserved.
 #include "Engine/Events/EventsTypeBasic.h"
 
 #include "core/platform/platform.h"
+#include "Engine/Graphics Interface/GraphicsWindow.h"
 // Thanks microsoft
 #ifdef CreateDirectory
 #undef CreateDirectory
@@ -74,6 +76,24 @@ SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(AudioSourceComponent)
 	SCRIPT_GENERATE_PROPERTY_FUNCS(size_t, GetAudioFile, SetAudioFile)
 	SCRIPT_GENERATE_PROPERTY_FUNCS(bool, IsPlaying, SetIsPlaying)
 	void Play(int a) { GetHandle()->Play(static_cast<AudioType>(a)); }
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// VideoPlayerComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(VideoPlayerComponent)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(size_t, GetVideoFile, SetVideoFile)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetLoop, SetLoop)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetPlaybackSpeed, SetPlaybackSpeed)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetFullscreen, SetFullscreen)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetAudioVolume, SetAudioVolume)
+	bool IsPlaying() { return GetHandle()->IsPlaying(); }
+	bool IsPaused() { return GetHandle()->IsPaused(); }
+	bool HasFinished() { return GetHandle()->HasFinished(); }
+	float GetPlaybackTime() { return GetHandle()->GetPlaybackTime(); }
+	float GetVideoDuration() { return GetHandle()->GetVideoDuration(); }
+	void Play() { GetHandle()->Play(); }
+	void Pause() { GetHandle()->Pause(); }
+	void Stop() { GetHandle()->Stop(); }
+	void Seek(float timestamp) { GetHandle()->Seek(timestamp); }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // CameraComponent
@@ -166,7 +186,6 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeCooldown, SetDodgeCooldown)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeDuration, SetDodgeDuration)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeSpeed, SetDodgeSpeed)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentStunTime, SetCurrentStunTime)
-SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeTime, SetCurrentDodgeTime)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
 
 //functions
@@ -176,6 +195,7 @@ void SetMovementVectorLua(const Vec2 v) { GetHandle()->SetMovementVector(v); }
 void DropItem() { GetHandle()->DropItem(); }
 void Throw(const Vec3 dir) { GetHandle()->Throw(dir); }
 void Attack() { GetHandle()->LightAttack(); }
+void Parry() { GetHandle()->Parry(); }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // PlayerMovementComponent
@@ -320,20 +340,20 @@ Vec2 Get2DAxis(std::string name)
 
 uint32_t Lua_PlayAudio(std::string name,bool looping, int category)
 {
-	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping, static_cast<AudioType>(category));
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name) | 1, looping, static_cast<AudioType>(category));
 }
 uint32_t Lua_PlayAudio3D(std::string name, bool looping, Vec3 position, int category)
 {
-	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position, static_cast<AudioType>(category));
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name) | 1, looping, position, static_cast<AudioType>(category));
 }
 
 uint32_t Lua_PlayAudioWithVolume(std::string name,bool looping, int category, float volume )
 {
-	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping, static_cast<AudioType>(category), volume);
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name) | 1, looping, static_cast<AudioType>(category), volume);
 }
 uint32_t Lua_PlayAudio3DWithVolume(std::string name, bool looping, Vec3 position, int category, float volume )
 {
-	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position, static_cast<AudioType>(category), std::pair<float, float>{2.0f,50.0f},volume);
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name) | 1, looping, position, static_cast<AudioType>(category), std::pair<float, float>{2.0f,50.0f},volume);
 }
 void Lua_SetCategoryVolume(int type, float volume)
 {
@@ -442,6 +462,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		// This section allows lua to get components
 		SCRIPT_REGISTER_COMP_GETTER(NameComponent)  // syntax e.g. - local nameComp = entity:GetNameComponent(); if nameComp:Exists() then ...;
 		SCRIPT_REGISTER_COMP_GETTER(AudioSourceComponent)
+		SCRIPT_REGISTER_COMP_GETTER(VideoPlayerComponent)
 		SCRIPT_REGISTER_COMP_GETTER(CameraComponent)
 		SCRIPT_REGISTER_COMP_GETTER(AnchorToCameraComponent)
 		SCRIPT_REGISTER_COMP_GETTER(ShakeComponent)
@@ -480,6 +501,24 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			SCRIPT_REGISTER_COMP_PROPERTY(AudioSourceComponent, "audioFile", GetAudioFile, SetAudioFile)
 			SCRIPT_REGISTER_COMP_PROPERTY(AudioSourceComponent, "isPlaying", IsPlaying, SetIsPlaying)
 			SCRIPT_REGISTER_COMP_FUNCTION(AudioSourceComponent, "Play", Play)
+		SCRIPT_REGISTER_COMP_END()
+
+		// VideoPlayerComponent
+		SCRIPT_REGISTER_COMP_BEGIN(VideoPlayerComponent)
+			SCRIPT_REGISTER_COMP_PROPERTY(VideoPlayerComponent, "videoFile", GetVideoFile, SetVideoFile)
+			SCRIPT_REGISTER_COMP_PROPERTY(VideoPlayerComponent, "loop", GetLoop, SetLoop)
+			SCRIPT_REGISTER_COMP_PROPERTY(VideoPlayerComponent, "playbackSpeed", GetPlaybackSpeed, SetPlaybackSpeed)
+			SCRIPT_REGISTER_COMP_PROPERTY(VideoPlayerComponent, "fullscreen", GetFullscreen, SetFullscreen)
+			SCRIPT_REGISTER_COMP_PROPERTY(VideoPlayerComponent, "audioVolume", GetAudioVolume, SetAudioVolume)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "IsPlaying", IsPlaying)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "IsPaused", IsPaused)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "HasFinished", HasFinished)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "GetPlaybackTime", GetPlaybackTime)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "GetVideoDuration", GetVideoDuration)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "Play", Play)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "Pause", Pause)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "Stop", Stop)
+			SCRIPT_REGISTER_COMP_FUNCTION(VideoPlayerComponent, "Seek", Seek)
 		SCRIPT_REGISTER_COMP_END()
 
 		// CameraComponent
@@ -564,7 +603,6 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "dodgeDuration", GetDodgeDuration, SetDodgeDuration)
 		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "dodgeSpeed", GetDodgeSpeed, SetDodgeSpeed)
 		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentStunTime", GetCurrentStunTime, SetCurrentStunTime)
-		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentDodgeTime", GetCurrentDodgeTime, SetCurrentDodgeTime)
 		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentDodgeCooldown", GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
 		// functions
 		SCRIPT_REGISTER_COMP_FUNCTION(CharacterMovementComponent, "Dodge", Dodge)
@@ -630,11 +668,22 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
+		.addProperty("EngineIsFullscreen", []() -> bool { return ST<GraphicsWindow>::Get()->GetIsFullscreen(); }, [](bool isFullscreen) -> void { ST<GraphicsWindow>::Get()->SetFullscreen(isFullscreen); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
+		.addProperty("TimeScale", GameTime::GetTimeScale, GameTime::SetTimeScale)
 		.addFunction("LoadScene", [](const std::string& scenePath) {
 			ST<Scheduler>::Get()->Add([scenePath]() -> void {
 				// Load new scene
 				ST<SceneManager>::Get()->UnloadAllScenes(scenePath);
+			});
+		})
+		.addFunction("LoadSceneAdditive", [](const std::string& scenePath) {
+			ST<SceneManager>::Get()->LoadScene(scenePath);
+		})
+		.addFunction("UnloadScene", [](const std::string& scenePath) {
+			ST<Scheduler>::Get()->Add([scenePath]() -> void {
+				if (auto scene{ ST<SceneManager>::Get()->GetSceneWithName(scenePath) })
+					ST<SceneManager>::Get()->UnloadScene(scene->GetIndex());
 			});
 		})
 		.addFunction("TransitionScene", [](const std::string& scenePath) {
@@ -668,6 +717,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("ThrowItem", Lua_SimpleQueueEventNextFrame<Events::GameActionThrowItem>)
 			.addFunction("LightAttack", Lua_SimpleQueueEventNextFrame<Events::GameActionLightAttack>)
 			.addFunction("HeavyAttack", Lua_SimpleQueueEventNextFrame<Events::GameActionHeavyAttack>)
+			.addFunction("Parry", Lua_SimpleQueueEventNextFrame<Events::GameActionParry>)
 			.addFunction("Dodge", Lua_SimpleQueueEventNextFrame<Events::GameActionDodge>)
 		.endNamespace()
 

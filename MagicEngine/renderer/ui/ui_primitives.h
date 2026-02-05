@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 #include "math/utils_math.h"
+#include "renderer/gfx_interface.h"
 #include "resource/resource_types.h"
 
 namespace Resource
@@ -45,6 +46,9 @@ namespace ui
     vec4 clipRect{0.0f, 0.0f, std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
     uint64_t textureId = 0;
     uint32_t samplerIndex = 0;
+    // Optional: direct texture view (bypasses textureId resolution when valid)
+    // Used for runtime textures like video frames that aren't in the asset system
+    gfx::TextureView directView = {};
   };
 
   struct PrimitiveDrawList
@@ -140,6 +144,15 @@ namespace ui
                 const vec4& clipRect = vec4(0.0f, 0.0f, std::numeric_limits<float>::max(),
                                             std::numeric_limits<float>::max()),
                 SamplerMode samplerMode = SamplerMode::Linear, uint16_t layer = 0);
+
+  // Direct TextureView overload for runtime textures (video frames, procedural, etc.)
+  // Bypasses texture ID resolution - the view is used directly in rendering
+  bool AddImageDirect(PrimitiveDrawList& list, gfx::TextureView view, const vec2& min, const vec2& max,
+                      const vec2& uvMin = vec2(0.0f), const vec2& uvMax = vec2(1.0f),
+                      uint32_t color = 0xFFFFFFFFu,
+                      const vec4& clipRect = vec4(0.0f, 0.0f, std::numeric_limits<float>::max(),
+                                                  std::numeric_limits<float>::max()),
+                      SamplerMode samplerMode = SamplerMode::Linear, uint16_t layer = 0);
 
   bool AddText(Resource::ResourceManager& resources, PrimitiveDrawList& list, FontHandle font, std::string_view text,
                const TextLayoutDesc& layout, uint32_t color, uint16_t layer = 0);

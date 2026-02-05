@@ -1,0 +1,80 @@
+// WBOIT Transparent Picking Shader - Static meshes
+// Renders transparent objects into VisibilityID buffer for object picking
+#include "shader_snippets.glsl"
+
+// =============================================================================
+// Bind Groups (minimal set for picking)
+// =============================================================================
+group Frame = 0;
+group Material = 1;
+group Dynamic = 2;
+
+bindings(Frame, start=0) {
+  uniform(std140) FrameUBO {
+    mat4 viewProj;
+    vec4 cameraPos;
+  } frame;
+}
+
+bindings(Material, start=0) {
+  uniform(std140) MaterialConstants {
+    uvec4 packed[2];  // 32 bytes of packed material data
+  } material;
+  texture sampler2D u_albedo;
+  texture sampler2D u_normal;
+  texture sampler2D u_metallicRoughness;
+  texture sampler2D u_emissive;
+  texture sampler2D u_occlusion;
+}
+
+bindings(Dynamic, start=0) {
+  uniform(std140) TransformUBO {
+    mat4 model;
+    uint objectId;
+    uint flags;
+    uint _pad1;
+    uint _pad2;
+  } transform;
+  uniform(std140) BoneMatricesUBO {
+    mat4 bones[256];
+  } skin;
+}
+
+// =============================================================================
+// Vertex Input - Static mesh (minimal for picking)
+// =============================================================================
+struct VertexIn {
+  vec3 a_position;
+  uint a_normalX;
+  uint a_packed;
+  uint a_uv;
+};
+
+// Simplified varyings for pick pass
+struct Varyings {
+  vec2 uv;
+};
+
+struct FragOut {
+  uint visibility;
+};
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+    out.uv = unpackUnorm2x16(in.a_uv);
+    vec4 worldPos = transform.model * vec4(in.a_position, 1.0);
+    gl_Position = frame.viewProj * worldPos;
+    return out;
+}
+#hina_end
+
+#hina_stage fragment entry FSMain use MaterialUnpack, TransparentPickFragment
+FragOut FSMain(Varyings in) {
+    FragOut out;
+    if (!processTransparentPick(in.uv, material.packed[0], u_albedo, transform.objectId, out.visibility)) {
+        discard;
+    }
+    return out;
+}
+#hina_end

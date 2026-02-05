@@ -48,11 +48,14 @@ X(OCCLUSION_TEXTURE, "Occlusion")
 
 		void DrawWindow() override;
 
-	private:
-		void AttemptCreateMaterial();
+		// Reload the window with a different material (used when duplicates not allowed)
+		void LoadMaterial(size_t materialHash);
 
 	private:
-		std::string pathToMaterialFile;
+		void AttemptUpdateMaterial();
+
+	private:
+		std::string materialFilePath;  // Path to the .material file being edited
 		Resource::ProcessedMaterial materialProps;
 
 		char materialName[128]{ "NewMaterial" };

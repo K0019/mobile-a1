@@ -95,6 +95,10 @@ void Application::InitializeFeatures(Context& context)
 {
     auto* graphics = ST<GraphicsMain>::Get();
 
+    // Editor uses dynamic VIEW_OUTPUT sizing (matches window) for crisp ImGui rendering.
+    // Game uses fixed internal resolution with letterboxing.
+    context.renderer->setUseFixedInternalResolution(false);
+
     // Initialize ImGui for Editor (Game does not call this)
     const std::string fontsFile{ Filepaths::fontsSave + "/Lato-Regular.ttf" };
     graphics->InitializeImGui(fontsFile);

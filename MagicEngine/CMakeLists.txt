@@ -95,6 +95,11 @@ if(NOT ANDROID)
         mikktspace::mikktspace
         meshoptimizer::meshoptimizer
     )
+
+    # Video playback via Windows Media Foundation (no external deps)
+    target_compile_definitions(MagicEngine PRIVATE MAGIC_HAS_VIDEO=1)
+    target_link_libraries(MagicEngine PRIVATE mfplat mfreadwrite mfuuid propsys)
+    message(STATUS "  Video support: ENABLED (Media Foundation)")
     # Tracy needs to be PUBLIC since profiler.h is in a public header
     # Boost is for type_index (Android uses typeid fallback)
     list(APPEND ENGINE_PUBLIC_DEPS
@@ -116,6 +121,11 @@ else()
         ktx
     )
     target_compile_definitions(MagicEngine PUBLIC KHRONOS_STATIC)
+
+    # Video playback via Android MediaCodec NDK
+    # Note: mediandk library is linked in android/app/src/main/cpp/CMakeLists.txt
+    target_compile_definitions(MagicEngine PRIVATE MAGIC_HAS_VIDEO=1)
+    message(STATUS "  Video support: ENABLED (MediaCodec NDK)")
 endif()
 
 target_link_libraries(MagicEngine

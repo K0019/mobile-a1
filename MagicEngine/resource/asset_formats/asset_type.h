@@ -23,6 +23,7 @@ namespace AssetFormat
         Shader,
         Font,
         GameData,  // Game-specific data files (e.g., .weapon)
+        Video,     // Video files (e.g., .mp4, .webm, .mkv)
         Count
     };
 
@@ -48,6 +49,7 @@ namespace AssetFormat
             case AssetType::Shader:    return "Shader";
             case AssetType::Font:      return "Font";
             case AssetType::GameData:  return "GameData";
+            case AssetType::Video:     return "Video";
             default:                   return "Unknown";
         }
     }
@@ -118,6 +120,11 @@ namespace AssetFormat
         if (extension == "weapon")
             return AssetType::GameData;
 
+        // Video formats
+        if (extension == "mp4" || extension == "webm" || extension == "mkv" ||
+            extension == "mov" || extension == "avi")
+            return AssetType::Video;
+
         return AssetType::Unknown;
     }
 
@@ -156,6 +163,7 @@ namespace AssetFormat
         if (name == "Shader")    return AssetType::Shader;
         if (name == "Font")      return AssetType::Font;
         if (name == "GameData")  return AssetType::GameData;
+        if (name == "Video")     return AssetType::Video;
         return AssetType::Unknown;
     }
 

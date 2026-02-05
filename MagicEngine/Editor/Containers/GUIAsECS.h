@@ -21,6 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include <type_traits>
 #include "Editor/Containers/GUICollection.h"
 #include "ECS/ECSSysLayers.h"
 #include "Utilities/Scheduler.h"
@@ -223,6 +224,13 @@ namespace editor {
 		window.Draw(++idCounter);
 	}
 
+	// Type trait to detect if a window type has a LoadMaterial method
+	template<typename T, typename = void>
+	struct has_load_material : std::false_type {};
+
+	template<typename T>
+	struct has_load_material<T, std::void_t<decltype(std::declval<T>().LoadMaterial(std::declval<size_t>()))>> : std::true_type {};
+
 	template<typename WindowType, typename ...Args>
 	void CreateGuiWindow(Args&&... windowConstructorParams)
 	{
@@ -230,13 +238,23 @@ namespace editor {
 		::ecs::POOL originalPool{ ::ecs::GetCurrentPoolId() };
 		::ecs::SwitchToPool(::ecs::POOL::EDITOR_GUI);
 
-		// If duplicates are not allowed, don't do anything if there already exists a window of the requested type.
+		// If duplicates are not allowed, update the existing window instead of creating a new one.
 		if constexpr (!WindowType::DUPLICATES_ALLOWED)
-			if (::ecs::GetCompsEnd<WindowType>() - ::ecs::GetCompsBegin<WindowType>() >= 1)
+		{
+			auto begin = ::ecs::GetCompsBegin<WindowType>();
+			auto end = ::ecs::GetCompsEnd<WindowType>();
+			if (end - begin >= 1)
 			{
+				// Window already exists - try to update it if it has a reload method
+				if constexpr (has_load_material<WindowType>::value && sizeof...(Args) == 1)
+				{
+					// Call LoadMaterial on the existing window with the first argument (the hash)
+					begin->LoadMaterial(std::forward<Args>(windowConstructorParams)...);
+				}
 				::ecs::SwitchToPool(originalPool);
 				return;
 			}
+		}
 
 		::ecs::CreateEntity()->AddComp(WindowType{ std::forward<Args>(windowConstructorParams)... });
 		::ecs::SwitchToPool(originalPool);

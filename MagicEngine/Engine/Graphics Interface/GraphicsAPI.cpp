@@ -23,6 +23,7 @@ All rights reserved.
 #include "FilepathConstants.h"
 #include "renderer/features/grid_feature.h"
 #include "renderer/render_feature.h"
+#include "renderer/render_graph.h"
 #include "Editor/EditorCameraBridge.h"
 #include "Graphics/RenderComponent.h"
 #include "Graphics/AnimationComponent.h"
@@ -311,10 +312,12 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	SceneRenderFeature::UpdateScene(sceneFeatureHandle, *context.resourceMngr, *context.renderer);
 
 	// 2D UI pass - queue UI commands from ECS systems
+	// UI uses fixed reference resolution (1920x1080) - letterboxing handles aspect ratio differences
 	if (overlayGui && overlayGui->begin(ui2dFontHandle)) {
-		float width = static_cast<float>(Core::Display().GetWidth());
-		float height = static_cast<float>(Core::Display().GetHeight());
-		overlayGui->setViewport(width, height);
+		uiViewportWidth = RenderResources::UI_REFERENCE_WIDTH;
+		uiViewportHeight = RenderResources::UI_REFERENCE_HEIGHT;
+
+		overlayGui->setViewport(uiViewportWidth, uiViewportHeight);
 		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
 		overlayGui->end();
 	}
@@ -417,7 +420,7 @@ void GraphicsMain::InitImGui(const std::string& fontfile)
 
 	// Load fonts at higher resolution for crisp rendering on high-DPI displays,
 	// then scale down via FontGlobalScale to maintain consistent logical size
-	constexpr float baseFontSizeUnscaled = 20.0f; // 13.0f is the size of the default font
+	constexpr float baseFontSizeUnscaled = 16.0f; // 20.0f is too big for my slanted asian eyes
 	const float baseFontSize = baseFontSizeUnscaled * dpiScale;  // Render at higher res
 	const float iconFontSize = baseFontSize * 2.5f / 3.0f; // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
 	const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
@@ -596,4 +599,45 @@ ecs::EntityHandle GraphicsMain::PreviousPick() {
 		return pickedEntity;
 	}
 	return nullptr;
+}
+
+bool GraphicsMain::WindowToUIPosition(float windowX, float windowY, float& outUIX, float& outUIY) const
+{
+	const float windowWidth = static_cast<float>(Core::Display().GetWidth());
+	const float windowHeight = static_cast<float>(Core::Display().GetHeight());
+
+	if (windowWidth <= 0.0f || windowHeight <= 0.0f) {
+		outUIX = outUIY = 0.0f;
+		return false;
+	}
+
+	// Calculate letterbox/pillarbox area (same logic as ExecuteFinalBlit)
+	const float srcAspect = uiViewportWidth / uiViewportHeight;  // 16:9 reference
+	const float dstAspect = windowWidth / windowHeight;
+
+	float letterboxX = 0.0f, letterboxY = 0.0f;
+	float letterboxW = windowWidth;
+	float letterboxH = windowHeight;
+
+	if (srcAspect > dstAspect) {
+		// Pillarbox (black bars on top/bottom)
+		letterboxH = letterboxW / srcAspect;
+		letterboxY = (windowHeight - letterboxH) * 0.5f;
+	} else if (srcAspect < dstAspect) {
+		// Letterbox (black bars on left/right)
+		letterboxW = letterboxH * srcAspect;
+		letterboxX = (windowWidth - letterboxW) * 0.5f;
+	}
+
+	// Check if position is within letterboxed area
+	if (windowX < letterboxX || windowX >= letterboxX + letterboxW ||
+	    windowY < letterboxY || windowY >= letterboxY + letterboxH) {
+		outUIX = outUIY = 0.0f;
+		return false;  // Click is in the black bars
+	}
+
+	// Map from letterbox space to UI space (0 to uiViewportWidth/Height)
+	outUIX = (windowX - letterboxX) / letterboxW * uiViewportWidth;
+	outUIY = (windowY - letterboxY) / letterboxH * uiViewportHeight;
+	return true;
 }

@@ -5,6 +5,7 @@
 #include "Assets/AssetImporter.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeEditor.h"
+#include "Editor/EditorUtilResource.h"
 #include "resource/resource_types.h"
 #include "FilepathConstants.h"
 #include "VFS/VFS.h"
@@ -18,7 +19,7 @@ namespace editor {
 #undef X
 
 	MaterialCreationWindow::MaterialCreationWindow()
-		: WindowBase{ "Create Material", gui::Vec2{ 400, 200 } }
+		: WindowBase{ "Create Material", gui::Vec2{ 400, 500 }, gui::FLAG_WINDOW::NO_RESIZE }
 	{
 		textures.fill(0);	//use 0 to represent no texture
 	}
@@ -30,24 +31,23 @@ namespace editor {
 		gui::TextBox("Material Name", materialName, sizeof(materialName));
 		gui::Separator();
 
-		// ----- Shading Model -----
-		gui::Checkbox("Unlit", &isUnlit);
-		gui::Checkbox("Double Sided", &isDoubleSided);
-		gui::Checkbox("Cast Shadow", &castShadow);
-		gui::Checkbox("Receive Shadow", &receiveShadow);
-		gui::Separator();
-
 		// ----- Core PBR properties -----
 		ImGui::ColorEdit4("Base Color", &materialProps.baseColorFactor.x);
 		ImGui::SliderFloat("Metallic", &materialProps.metallicFactor, 0.0f, 1.0f);
 		ImGui::SliderFloat("Roughness", &materialProps.roughnessFactor, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Emissive Factor", &materialProps.emissiveFactor.x);
+		ImGui::ColorEdit3("Emissive Color", &materialProps.emissiveFactor.x);
 		ImGui::SliderFloat("Normal Scale", &materialProps.normalScale, 0.0f, 2.0f);
 		ImGui::SliderFloat("Occlusion Strength", &materialProps.occlusionStrength, 0.0f, 1.0f);
 		ImGui::SliderFloat("Alpha Cutoff", &materialProps.alphaCutoff, 0.0f, 1.0f);
 		gui::Separator();
 
-		// ----- Material properties -----
+		// ----- Material Flags -----
+		ImGui::Checkbox("Unlit", &isUnlit);
+		ImGui::SameLine();
+		ImGui::Checkbox("Double Sided", &isDoubleSided);
+		gui::Separator();
+
+		// ----- Alpha Mode -----
 		const char* alphaModes[] = { "Opaque", "Mask", "Blend" };
 		int currentAlphaMode = static_cast<int>(materialProps.alphaMode);
 		if (ImGui::Combo("Alpha Mode", &currentAlphaMode, alphaModes, 3))
@@ -56,16 +56,13 @@ namespace editor {
 		}
 		gui::Separator();
 
-		// ----- Texturse -----
+		// ----- Textures -----
 		for (int i{}; i < +MATERIAL_TEXTURE_INDEX::TOTAL; ++i)
 		{
 			gui::SetID id{ i };
 
-			gui::TextBoxReadOnly(textureSlotNames[i], std::to_string(textures[i]));
-			gui::PayloadTarget<size_t>("TEXTURE_HASH", [this, i](size_t hash) -> void {
-				textures[i] = hash;
-			});
-			
+			EditorUtil_DrawAssetSlot<ResourceTexture>(textureSlotNames[i], textures[i]);
+
 			gui::SameLine();
 
 			if (gui::Button{ ICON_FA_XMARK })
@@ -89,55 +86,52 @@ namespace editor {
 
 			if (!texturesGetter.GetResource(resourceHash))
 			{
-				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Invalid texture" });
+				CONSOLE_LOG(LEVEL_ERROR) << "Failed to create material: Invalid texture";
 				return;
 			}
 			valid = true;
 		}
 
-		if (valid)
+		if (!valid)
 		{
-			std::filesystem::path assetDir = "compiledassets/materials/";
-			std::filesystem::create_directories(assetDir);
-			std::filesystem::path assetPath = assetDir / (std::string(materialName) + ".material");
-
-			Serializer writer(VFS::ConvertVirtualToPhysical(assetPath.string()));
-			if (!writer.IsOpen())
-			{
-				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Could not open file for writing: " + assetPath.string() });
-				return;
-			}
-
-			// Set the flags
-			materialProps.flags = 0;
-			if (isUnlit)
-				materialProps.flags |= MaterialFlags::UNLIT;
-			if (isDoubleSided)
-				materialProps.flags |= MaterialFlags::DOUBLE_SIDED;
-			if (castShadow)
-				materialProps.flags |= MaterialFlags::CAST_SHADOW;
-			if (receiveShadow)
-				materialProps.flags |= MaterialFlags::RECEIVE_SHADOW;
-
-			materialProps.name = materialName;
-			
-			MaterialSerialization::Serialize(writer, materialProps, textures);
-
-			if (!writer.SaveAndClose())
-			{
-				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Could not save file. Asset not imported: " + assetPath.string() });
-				return;
-			}
-
-			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Success!", "Material created at: " + assetPath.string() });
-			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
-
-			AssetImporter::Import(assetPath.string());
+			CONSOLE_LOG(LEVEL_WARNING) << "Failed to create material: No textures assigned";
+			return;
 		}
-		else
+
+		std::filesystem::path assetDir = "compiledassets/materials/";
+		std::filesystem::create_directories(assetDir);
+		std::filesystem::path assetPath = assetDir / (std::string(materialName) + ".material");
+
+		Serializer writer(VFS::ConvertVirtualToPhysical(assetPath.string()));
+		if (!writer.IsOpen())
 		{
-			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "No textures assigned" });
+			CONSOLE_LOG(LEVEL_ERROR) << "Failed to create material: Could not open file for writing: " << assetPath;
+			return;
 		}
+
+		// Set the flags
+		materialProps.flags = 0;
+		if (isUnlit)
+			materialProps.flags |= MaterialFlags::UNLIT;
+		if (isDoubleSided)
+			materialProps.flags |= MaterialFlags::DOUBLE_SIDED;
+		if (castShadow)
+			materialProps.flags |= MaterialFlags::CAST_SHADOW;
+		if (receiveShadow)
+			materialProps.flags |= MaterialFlags::RECEIVE_SHADOW;
+
+		materialProps.name = materialName;
+
+		MaterialSerialization::Serialize(writer, materialProps, textures);
+
+		if (!writer.SaveAndClose())
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Failed to create material: Could not save file: " << assetPath;
+			return;
+		}
+
+		CONSOLE_LOG(LEVEL_INFO) << "Material created: " << assetPath;
+		AssetImporter::Import(assetPath.string());
 	}
 
 
@@ -145,27 +139,41 @@ namespace editor {
 
 	MaterialEditWindow::MaterialEditWindow(size_t materialHash)
 		:
-		WindowBase{ "Edit Material", gui::Vec2{ 800, 400 } }
+		WindowBase{ "Edit Material", gui::Vec2{ 400, 500 }, gui::FLAG_WINDOW::NO_RESIZE }
 	{
+		textures.fill(0);
+		LoadMaterial(materialHash);
+	}
+
+	void MaterialEditWindow::LoadMaterial(size_t materialHash)
+	{
+		textures.fill(0);
+
 		// Load the information of the material to be edited
 		auto& fpManager = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager();
 		auto materialEntry = fpManager.GetFileEntry(materialHash);
 
-		assert(materialEntry);
+		if (!materialEntry)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Material entry not found for hash: " << materialHash;
+			return;
+		}
 
-		std::string pathToMaterial = materialEntry->path;
+		materialFilePath = materialEntry->path;
 		std::string fileData;
 
-		if (!VFS::ReadFile(pathToMaterial, fileData))
+		if (!VFS::ReadFile(materialFilePath, fileData))
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Failed to open .material file ";
+			CONSOLE_LOG(LEVEL_ERROR) << "Failed to open .material file: " << materialFilePath;
+			return;
 		}
 
 		// Build our old material props
 		Deserializer reader{ fileData };
 		if (!reader.IsValid())
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Failed to deserialize .material file ";
+			CONSOLE_LOG(LEVEL_ERROR) << "Failed to deserialize .material file: " << materialFilePath;
+			return;
 		}
 		MaterialSerialization::Deserialize(reader, materialProps);
 
@@ -207,62 +215,74 @@ namespace editor {
 	void MaterialEditWindow::DrawWindow()
 	{
 #ifdef IMGUI_ENABLED
-		// ----- Name -----
-		gui::TextBox("Material Name", materialName, sizeof(materialName));
-		gui::Separator();
+		bool changed = false;
 
-		// ----- Shading Model -----
-		gui::Checkbox("Unlit", &isUnlit);
-		gui::Checkbox("Double Sided", &isDoubleSided);
-		gui::Checkbox("Cast Shadow", &castShadow);
-		gui::Checkbox("Receive Shadow", &receiveShadow);
+		// ----- Name -----
+		changed |= ImGui::InputText("Material Name", materialName, sizeof(materialName));
 		gui::Separator();
 
 		// ----- Core PBR properties -----
-		ImGui::ColorEdit4("Base Color", &materialProps.baseColorFactor.x);
-		ImGui::SliderFloat("Metallic", &materialProps.metallicFactor, 0.0f, 1.0f);
-		ImGui::SliderFloat("Roughness", &materialProps.roughnessFactor, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Emissive Factor", &materialProps.emissiveFactor.x);
-		ImGui::SliderFloat("Normal Scale", &materialProps.normalScale, 0.0f, 2.0f);
-		ImGui::SliderFloat("Occlusion Strength", &materialProps.occlusionStrength, 0.0f, 1.0f);
-		ImGui::SliderFloat("Alpha Cutoff", &materialProps.alphaCutoff, 0.0f, 1.0f);
+		changed |= ImGui::ColorEdit4("Base Color", &materialProps.baseColorFactor.x);
+		changed |= ImGui::SliderFloat("Metallic", &materialProps.metallicFactor, 0.0f, 1.0f);
+		changed |= ImGui::SliderFloat("Roughness", &materialProps.roughnessFactor, 0.0f, 1.0f);
+		changed |= ImGui::ColorEdit3("Emissive Color", &materialProps.emissiveFactor.x);
+		changed |= ImGui::SliderFloat("Normal Scale", &materialProps.normalScale, 0.0f, 2.0f);
+		changed |= ImGui::SliderFloat("Occlusion Strength", &materialProps.occlusionStrength, 0.0f, 1.0f);
+		changed |= ImGui::SliderFloat("Alpha Cutoff", &materialProps.alphaCutoff, 0.0f, 1.0f);
 		gui::Separator();
 
-		// ----- Material properties -----
+		// ----- Material Flags -----
+		if (ImGui::Checkbox("Unlit", &isUnlit)) changed = true;
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Double Sided", &isDoubleSided)) changed = true;
+		gui::Separator();
+
+		// ----- Alpha Mode -----
 		const char* alphaModes[] = { "Opaque", "Mask", "Blend" };
 		int currentAlphaMode = static_cast<int>(materialProps.alphaMode);
 		if (ImGui::Combo("Alpha Mode", &currentAlphaMode, alphaModes, 3))
 		{
 			materialProps.alphaMode = static_cast<AlphaMode>(currentAlphaMode);
+			changed = true;
 		}
 		gui::Separator();
 
-		// ----- Texturse -----
+		// ----- Textures -----
 		for (int i{}; i < +MATERIAL_TEXTURE_INDEX::TOTAL; ++i)
 		{
 			gui::SetID id{ i };
 
-			gui::TextBoxReadOnly(textureSlotNames[i], std::to_string(textures[i]));
-			gui::PayloadTarget<size_t>("TEXTURE_HASH", [this, i](size_t hash) -> void {
-				textures[i] = hash;
-				});
+			size_t prevTexture = textures[i];
+			EditorUtil_DrawAssetSlot<ResourceTexture>(textureSlotNames[i], textures[i]);
+			changed |= (textures[i] != prevTexture);
 
 			gui::SameLine();
 
 			if (gui::Button{ ICON_FA_XMARK })
 			{
-				textures[i] = 0; // clear texture slot
+				if (textures[i] != 0)
+				{
+					textures[i] = 0;
+					changed = true;
+				}
 			}
 		}
 
-		if (gui::Button createButton{ "Create" })
-			AttemptCreateMaterial();
+		// Auto-update material when any property changes
+		if (changed)
+			AttemptUpdateMaterial();
 #endif
 	}
-	
-	void MaterialEditWindow::AttemptCreateMaterial()
+
+	void MaterialEditWindow::AttemptUpdateMaterial()
 	{
-		bool valid = false;
+		if (materialFilePath.empty())
+		{
+			CONSOLE_LOG(LEVEL_WARNING) << "Material update skipped: empty file path";
+			return;
+		}
+
+		// Validate any assigned textures exist
 		auto texturesGetter{ AssetManager::GetContainer<ResourceTexture>() };
 		for (size_t resourceHash : textures)
 		{
@@ -270,56 +290,38 @@ namespace editor {
 
 			if (!texturesGetter.GetResource(resourceHash))
 			{
-				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Invalid texture" });
+				CONSOLE_LOG(LEVEL_WARNING) << "Material update skipped: invalid texture hash " << resourceHash;
 				return;
 			}
-			valid = true;
 		}
 
-		if (valid)
+		// Write to the original file path (update in place)
+		std::string physicalPath = VFS::ConvertVirtualToPhysical(materialFilePath);
+		Serializer writer(physicalPath);
+		if (!writer.IsOpen())
 		{
-			std::filesystem::path assetDir = "compiledassets/materials/";
-			std::filesystem::create_directories(assetDir);
-			std::filesystem::path assetPath = assetDir / (std::string(materialName) + ".material");
-
-			Serializer writer(VFS::ConvertVirtualToPhysical(assetPath.string()));
-			if (!writer.IsOpen())
-			{
-				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Could not open file for writing: " + assetPath.string() });
-				return;
-			}
-
-			// Set the flags
-			materialProps.flags = 0;
-			if (isUnlit)
-				materialProps.flags |= MaterialFlags::UNLIT;
-			if (isDoubleSided)
-				materialProps.flags |= MaterialFlags::DOUBLE_SIDED;
-			if (castShadow)
-				materialProps.flags |= MaterialFlags::CAST_SHADOW;
-			if (receiveShadow)
-				materialProps.flags |= MaterialFlags::RECEIVE_SHADOW;
-
-			materialProps.name = materialName;
-
-			MaterialSerialization::Serialize(writer, materialProps, textures);
-
-			if (!writer.SaveAndClose())
-			{
-				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Could not save file. Asset not imported: " + assetPath.string() });
-				return;
-			}
-
-			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Success!", "Material created at: " + assetPath.string() });
-			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
-
-			AssetImporter::Import(assetPath.string());
-		}
-		else
-		{
-			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "No textures assigned" });
+			CONSOLE_LOG(LEVEL_WARNING) << "Material update skipped: could not open " << physicalPath;
+			return;
 		}
 
+		// Set the flags
+		materialProps.flags = 0;
+		if (isUnlit)
+			materialProps.flags |= MaterialFlags::UNLIT;
+		if (isDoubleSided)
+			materialProps.flags |= MaterialFlags::DOUBLE_SIDED;
+		if (castShadow)
+			materialProps.flags |= MaterialFlags::CAST_SHADOW;
+		if (receiveShadow)
+			materialProps.flags |= MaterialFlags::RECEIVE_SHADOW;
 
+		materialProps.name = materialName;
+
+		MaterialSerialization::Serialize(writer, materialProps, textures);
+
+		if (!writer.SaveAndClose())
+			return;
+
+		AssetImporter::Import(materialFilePath);
 	}
 }

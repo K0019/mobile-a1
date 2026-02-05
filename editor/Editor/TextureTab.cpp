@@ -1,169 +1,89 @@
 #include "Editor/TextureTab.h"
-#include "Editor/AssetBrowser.h"
 #include "Editor/EditorGuiUtils.h"
-#include "Editor/ThumbnailCache.h"
-#include "Assets/Types/AssetTypes.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "renderer/gfx_material_system.h"
 
 namespace editor {
 
-    const char* TextureTab::GetName() const
-    {
-        return "Textures";
-    }
+	const AssetTabConfig TextureTab::config = {
+		.name = "Textures",
+		.identifier = ICON_FA_IMAGE " Textures",
+		.icon = ICON_FA_IMAGE,
+		.payloadType = "TEXTURE_HASH",
+		.iconColor = {0.4f, 0.7f, 1.0f, 1.0f},  // Blue
+		.thumbnailType = ThumbnailCache::AssetType::Texture,
+		.hasThumbnails = true
+	};
 
-    const char* TextureTab::GetIdentifier() const
-    {
-        return ICON_FA_IMAGE" Textures";
-    }
+	const AssetTabConfig& TextureTab::GetConfig() const
+	{
+		return config;
+	}
 
-    void TextureTab::Render(const gui::TextBoxWithFilter& filter)
-    {
+	void TextureTab::RenderDetailPanelContent(size_t hash, const std::string& name)
+	{
 #ifdef IMGUI_ENABLED
-        float availableHeight = ImGui::GetContentRegionAvail().y;
-        float detailPanelHeight = selectedTextureHash.has_value() ? 120.0f : 0.0f;
-        float gridHeight = availableHeight - detailPanelHeight;
+		// Texture preview
+		uint64_t thumbId = ThumbnailCache::Get().GetThumbnail(hash, ThumbnailCache::AssetType::Texture, name);
+		if (thumbId != 0)
+		{
+			float previewSize = std::min(ImGui::GetContentRegionAvail().x - 10, 120.0f);
+			ImGui::Image(static_cast<ImTextureID>(thumbId), ImVec2(previewSize, previewSize), ImVec2(0, 1), ImVec2(1, 0));
+		}
+		else
+		{
+			ImGui::Button(ICON_FA_IMAGE " No Preview", ImVec2(100, 100));
+		}
 
-        RenderGridView(filter, gridHeight);
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
 
-        if (selectedTextureHash.has_value())
-        {
-            ImGui::Separator();
-            RenderDetailPanel();
-        }
+		// Get texture info from ResourceTexture handle
+		auto& container = ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceTexture>();
+		ResourceTexture* texResource = const_cast<ResourceTexture*>(static_cast<const ResourceTexture*>(container.GetResource(hash)));
+
+		if (texResource && texResource->IsLoaded())
+		{
+			// Access texture hot data via ResourceManager
+			auto& resourceManager = ST<GraphicsMain>::Get()->GetAssetSystem();
+			const auto* hotData = resourceManager.getTextureHotData(texResource->handle);
+
+			if (hotData && hotData->hasGfxTexture.load(std::memory_order_acquire))
+			{
+				// Get metadata from renderer's material system using gfx handle
+				auto* renderer = ST<GraphicsMain>::Get()->GetRenderer();
+				if (renderer)
+				{
+					// Construct gfx handle from hot data indices
+					gfx::TextureHandle gfxHandle;
+					gfxHandle.index = static_cast<uint16_t>(hotData->gfxTextureIndex);
+					gfxHandle.generation = static_cast<uint16_t>(hotData->gfxTextureGeneration);
+
+					const gfx::TextureEntry* texEntry = renderer->getMaterialSystem().getTexture(gfxHandle);
+					if (texEntry && texEntry->inUse)
+					{
+						ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Resolution:");
+						ImGui::SameLine(100);
+						ImGui::Text("%u x %u", texEntry->width, texEntry->height);
+
+						ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Color:");
+						ImGui::SameLine(100);
+						ImGui::Text("%s", texEntry->isSRGB ? "sRGB" : "Linear");
+					}
+				}
+			}
+			else
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), ICON_FA_HOURGLASS " Loading...");
+			}
+		}
+		else
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), ICON_FA_CIRCLE_EXCLAMATION " Not loaded");
+			ImGui::TextDisabled("Texture is registered but not in GPU memory.");
+		}
 #endif
-    }
-
-    void TextureTab::RenderGridView(const gui::TextBoxWithFilter& filter, float height)
-    {
-#ifdef IMGUI_ENABLED
-        ImGui::BeginChild("TextureGrid", ImVec2(0, height), false);
-
-        float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        gui::Vec2 thumbnailSizeVec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE };
-        float panelWidth = ImGui::GetContentRegionAvail().x;
-        gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-
-        int count{};
-        for (const auto& [hash, textureRef] : ST<AssetManager>::Get()->Editor_GetContainer<ResourceTexture>().Editor_GetAllResources())
-        {
-            const std::string& textureName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
-            if (!filter.PassFilter(textureName))
-                continue;
-
-            {
-                gui::SetID id{ count++ };
-                gui::Group group;
-
-                bool isSelected = selectedTextureHash.has_value() && selectedTextureHash.value() == hash.get();
-                if (isSelected)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.59f, 0.98f, 0.6f));
-                }
-
-                // Try to get thumbnail from cache
-                uint64_t thumbId = ThumbnailCache::Get().GetThumbnail(
-                    hash.get(), ThumbnailCache::AssetType::Texture, textureName);
-
-                bool clicked = false;
-                if (thumbId != 0)
-                {
-                    // Display actual thumbnail (ImTextureID is ImU64)
-                    clicked = ImGui::ImageButton(
-                        ("##tex" + std::to_string(count)).c_str(),
-                        static_cast<ImTextureID>(thumbId),
-                        ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
-                }
-                else
-                {
-                    // Fall back to icon
-                    clicked = ImGui::Button(
-                        (std::string(ICON_FA_IMAGE) + "##" + std::to_string(count)).c_str(),
-                        ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
-                }
-
-                if (clicked)
-                {
-                    if (isSelected)
-                        selectedTextureHash.reset();
-                    else
-                        selectedTextureHash = hash.get();
-                }
-
-                if (isSelected)
-                {
-                    ImGui::PopStyleColor();
-                }
-
-                gui::PayloadSource{ "TEXTURE_HASH", hash.get() };
-
-                gui::ShowSimpleHoverTooltip(textureName);
-                gui::ThumbnailLabel(textureName, THUMBNAIL_SIZE);
-            }
-
-            grid.NextItem();
-        }
-
-        ImGui::PopStyleVar(2);
-        ImGui::EndChild();
-#endif
-    }
-
-    void TextureTab::RenderDetailPanel()
-    {
-#ifdef IMGUI_ENABLED
-        if (!selectedTextureHash.has_value())
-            return;
-
-        ImGui::BeginChild("TextureDetails", ImVec2(0, 0), true);
-
-        size_t hash = selectedTextureHash.value();
-        const std::string* texName = ST<AssetManager>::Get()->Editor_GetName(hash);
-
-        if (!texName)
-        {
-            ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "Texture not found");
-            ImGui::EndChild();
-            return;
-        }
-
-        // Header with close button
-        ImGui::Text(ICON_FA_IMAGE " %s", texName->c_str());
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
-        if (ImGui::SmallButton(ICON_FA_XMARK))
-        {
-            selectedTextureHash.reset();
-            ImGui::EndChild();
-            return;
-        }
-
-        ImGui::Separator();
-
-        ImGui::Columns(2, nullptr, false);
-
-        // Left column - Texture icon placeholder
-        ImGui::Button(ICON_FA_IMAGE, ImVec2(80, 80));
-
-        ImGui::NextColumn();
-
-        // Right column - Actions
-        ImGui::Text("Actions:");
-        ImGui::Spacing();
-
-        ImGui::Button(ICON_FA_HAND " Drag to assign", ImVec2(-1, 0));
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-        {
-            ImGui::SetDragDropPayload("TEXTURE_HASH", &hash, sizeof(size_t));
-            ImGui::Text("Texture: %s", texName->c_str());
-            ImGui::EndDragDropSource();
-        }
-
-        ImGui::Columns(1);
-
-        ImGui::EndChild();
-#endif
-    }
+	}
 
 }

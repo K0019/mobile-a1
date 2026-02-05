@@ -3,11 +3,16 @@
 
 namespace editor {
 
-	struct SceneTab : public BaseAssetCategory
+	class SceneTab : public StringAssetTab
 	{
-		const char* GetName() const override;
-		const char* GetIdentifier() const override;
-		void Render(const gui::TextBoxWithFilter& filter) override;
+	protected:
+		const AssetTabConfig& GetConfig() const override;
+		std::vector<std::string> GetItemList() const override;
+		std::string GetDisplayName(const std::string& item) const override;
+		void OnItemClicked(const std::string& item) override;
+
+	private:
+		static const AssetTabConfig config;
 	};
 
 }

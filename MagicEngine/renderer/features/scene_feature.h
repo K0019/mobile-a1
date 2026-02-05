@@ -60,6 +60,7 @@ struct DrawData
   // Skinning data (for skeletal animation)
   bool isSkinned = false;
   bool isTransparent = false;  // For WBOIT routing (future)
+  bool doubleSided = false;    // No back-face culling
   uint32_t jointCount = 0;     // Number of active bones (max 256)
   const glm::mat4* skinMatrices = nullptr;  // Pointer to AnimationComponent::skinMatrices
 
@@ -216,6 +217,7 @@ private:
   void ExecuteDeferredLighting(internal::ExecutionContext& ctx);
   void ExecuteWBOITAccumulation(internal::ExecutionContext& ctx);
   void ExecuteWBOITResolve(internal::ExecutionContext& ctx);
+  void ExecuteTransparentPicking(internal::ExecutionContext& ctx);
   void ExecuteSkyboxPass(internal::ExecutionContext& ctx);
   void ProcessPendingPick(internal::ExecutionContext& ctx);
 
@@ -234,6 +236,10 @@ private:
   gfx::Holder<gfx::Pipeline> m_gbufferPipeline;         // Static mesh pipeline
   gfx::Holder<gfx::Pipeline> m_gbufferSkinnedPipeline;  // Skinned mesh pipeline
   gfx::Holder<gfx::Pipeline> m_gbufferMorphedPipeline;  // Skinned + morph target pipeline
+  // Double-sided pipeline variants (no back-face culling)
+  gfx::Holder<gfx::Pipeline> m_gbufferDoubleSidedPipeline;
+  gfx::Holder<gfx::Pipeline> m_gbufferSkinnedDoubleSidedPipeline;
+  gfx::Holder<gfx::Pipeline> m_gbufferMorphedDoubleSidedPipeline;
   gfx::Holder<gfx::BindGroupLayout> m_sceneLayout;  // Set 0: Frame UBO
   gfx::Buffer m_frameUBO = {};                       // Persistently mapped frame UBO
   void* m_frameUBOMapped = nullptr;                  // Mapped pointer for fast updates
@@ -241,6 +247,9 @@ private:
   bool m_pipelineCreated = false;
   bool m_skinnedPipelineCreated = false;
   bool m_morphedPipelineCreated = false;
+  bool m_doubleSidedPipelineCreated = false;
+  bool m_skinnedDoubleSidedPipelineCreated = false;
+  bool m_morphedDoubleSidedPipelineCreated = false;
 
   // ========================================================================
   // Composite Pipeline Resources (owned by this feature)
@@ -294,6 +303,8 @@ private:
   gfx::Holder<gfx::Pipeline> m_wboitAccumPipeline;        // Accumulation pass pipeline (static meshes)
   gfx::Holder<gfx::Pipeline> m_wboitAccumSkinnedPipeline; // Accumulation pass pipeline (skinned meshes)
   gfx::Holder<gfx::Pipeline> m_wboitResolvePipeline;      // Resolve pass pipeline
+  gfx::Holder<gfx::Pipeline> m_wboitPickPipeline;         // Visibility picking pass pipeline (static meshes)
+  gfx::Holder<gfx::Pipeline> m_wboitPickSkinnedPipeline;  // Visibility picking pass pipeline (skinned meshes)
   gfx::Holder<gfx::BindGroupLayout> m_wboitFrameLayout;   // Set 0: Frame UBO with camera pos
   gfx::Holder<gfx::BindGroupLayout> m_wboitResolveLayout; // Set 0: Accumulation texture
   gfx::Holder<gfx::Sampler> m_wboitSampler;           // Linear sampler for resolve
@@ -303,6 +314,18 @@ private:
   gfx::BindGroup m_wboitResolveBindGroup = {};        // Set 0 for resolve pass
   bool m_wboitPipelinesCreated = false;
   gfx::Texture m_lastWboitAccum = {};                 // Track for rebind
+
+  // Per-draw offsets stored during WBOIT accumulation for reuse in TransparentPicking
+  struct WBOITDrawOffsets {
+    uint32_t transformOffset;
+    uint32_t boneOffset;
+  };
+  std::vector<WBOITDrawOffsets> m_wboitDrawOffsets;
+
+  // Ring buffer overflow tracking (warns once per frame)
+  bool m_transformOverflowWarned = false;
+  bool m_boneOverflowWarned = false;
+  uint32_t m_droppedDrawsThisFrame = 0;
 
   // ========================================================================
   // Object Picking Resources
@@ -315,6 +338,9 @@ private:
   bool EnsurePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureMorphedPipelineCreated(GfxRenderer* gfxRenderer);
+  bool EnsureDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer);
+  bool EnsureSkinnedDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer);
+  bool EnsureMorphedDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx::Texture sceneDepth, gfx::TextureView sceneDepthView);
   bool EnsureSkyboxBindGroup(GfxRenderer* gfxRenderer);

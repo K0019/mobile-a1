@@ -25,6 +25,7 @@ All rights reserved.
 #include "Engine/Events/EventsTypeBasic.h"
 #include "Engine/EntityEvents.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Utilities/Logging.h"
 #include <cstdio>
 
@@ -166,10 +167,15 @@ bool ButtonInputSystem::PreRun()
 
 	if (!(pressed || released))
 		return false;
-	pos = MagicInput::GetMousePos();
-	// pos returns window position. Compensate for wrong aspect ratios to fix click area not aligning with button rendering
-	pos.x = pos.x / static_cast<float>(Core::Display().GetWidth()) * 1920.0f;
-	pos.y = pos.y / static_cast<float>(Core::Display().GetHeight()) * 1080.0f;
+
+	// Convert window position to UI space, accounting for letterboxing
+	Vec2 rawPos = MagicInput::GetMousePos();
+	float uiX, uiY;
+	if (!ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY)) {
+		// Click is in the letterbox black bars - ignore
+		return false;
+	}
+	pos = Vec2{ uiX, uiY };
 
 	printf("[ButtonInput] Click detected! scaledPos=(%.1f, %.1f)\n", pos.x, pos.y);
 	fflush(stdout);

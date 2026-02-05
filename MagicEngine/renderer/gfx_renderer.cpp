@@ -130,6 +130,7 @@ bool GfxRenderer::initialize(void* nativeWindow, uint32_t width, uint32_t height
     // Initialize hina-vk
     hina_desc desc = hina_desc_default();
     desc.native_window = nativeWindow;
+    //desc.flags = HINA_INIT_VALIDATION_BIT;
     desc.flags = 0;
     desc.log_fn = hinaLogCallback;
     // Note: Window size is determined by native_window, not by desc fields
@@ -501,9 +502,10 @@ bool GfxRenderer::createRenderTargets() {
         LOG_DEBUG("[GfxRenderer] Created WBOIT_Reveal (R8_UNORM)");
     }
 
-    // Create view output textures (Game, Scene, Preview)
+    // Create view output textures (Game, Scene, Preview) at fixed internal resolution
+    // ExecuteFinalBlit handles letterboxing from VIEW_OUTPUT to swapchain
     for (size_t i = 0; i < static_cast<size_t>(ViewId::Count); ++i) {
-        if (!createViewOutput(static_cast<ViewId>(i), m_width, m_height)) {
+        if (!createViewOutput(static_cast<ViewId>(i), RenderResources::INTERNAL_WIDTH, RenderResources::INTERNAL_HEIGHT)) {
             LOG_ERROR("[GfxRenderer] Failed to create view output {}", i);
             return false;
         }
@@ -907,11 +909,31 @@ void GfxRenderer::onResize(uint32_t width, uint32_t height) {
     m_width = width;
     m_height = height;
 
-    // GBuffer, HDR, WBOIT, shadow atlas, and ambient oct map all use fixed internal
-    // resolution (INTERNAL_WIDTH x INTERNAL_HEIGHT) — no need to recreate on window resize.
-    // Only ViewOutputs need resizing since they match window dimensions for final blit.
-    for (size_t i = 0; i < static_cast<size_t>(ViewId::Count); ++i) {
-        resizeViewOutput(static_cast<ViewId>(i), width, height);
+    // GBuffer, HDR, WBOIT use fixed internal resolution (INTERNAL_WIDTH x INTERNAL_HEIGHT).
+    // ViewOutputs behavior depends on m_useFixedInternalResolution:
+    // - true (game mode): VIEW_OUTPUT stays at internal resolution, ExecuteFinalBlit letterboxes
+    // - false (editor mode): VIEW_OUTPUT matches window size for crisp UI rendering
+    if (!m_useFixedInternalResolution) {
+        for (size_t i = 0; i < static_cast<size_t>(ViewId::Count); ++i) {
+            resizeViewOutput(static_cast<ViewId>(i), width, height);
+        }
+    }
+}
+
+void GfxRenderer::setUseFixedInternalResolution(bool use) {
+    if (m_useFixedInternalResolution == use) return;
+
+    m_useFixedInternalResolution = use;
+
+    // If renderer is initialized, immediately apply the appropriate VIEW_OUTPUT size
+    if (m_initialized) {
+        const uint32_t targetWidth = use ? RenderResources::INTERNAL_WIDTH : m_width;
+        const uint32_t targetHeight = use ? RenderResources::INTERNAL_HEIGHT : m_height;
+        for (size_t i = 0; i < static_cast<size_t>(ViewId::Count); ++i) {
+            resizeViewOutput(static_cast<ViewId>(i), targetWidth, targetHeight);
+        }
+        LOG_INFO("[GfxRenderer] VIEW_OUTPUT resolution mode changed: {} ({}x{})",
+                 use ? "fixed internal" : "match window", targetWidth, targetHeight);
     }
 }
 

@@ -49,17 +49,24 @@ FragOut FSMain(Varyings in) {
     // avgColor = accumulation.rgb / accumulation.a
     vec3 avgColor = accum.rgb / max(accum.a, 1e-5);
 
-    // Estimate coverage/reveal from weighted alpha
-    // This is a simplified approximation since we don't have a separate reveal buffer
-    // For proper WBOIT, reveal = prod(1 - alpha_i), but we approximate from weighted alpha
-    // Using a heuristic: higher accumulated alpha = more opaque overall
-    float avgAlpha = clamp(accum.a / max(accum.a, 1.0), 0.0, 1.0);
+    // Estimate reveal (transparency) from weighted alpha
+    // Without a separate reveal buffer, we approximate using accumulated weight.
+    //
+    // CRITICAL: accum.a = sum(alpha_i * weight_i) where weight varies ~300x with depth.
+    // This would make far objects appear much more transparent than close objects
+    // with the same alpha. Use log() to compress this range.
+    //
+    // For alpha=1: accum.a ranges from ~10 (far) to ~3000 (near)
+    // log(11) ≈ 2.4, log(3001) ≈ 8.0, so range compressed to ~3.3x
+    //
+    // - accum.a near 0: reveal = 1 (nothing drawn, fully transparent)
+    // - accum.a = 10 (far alpha=1): reveal ≈ 0.29
+    // - accum.a = 3000 (near alpha=1): reveal ≈ 0.11
+    float reveal = clamp(1.0 / (1.0 + log(1.0 + accum.a)), 0.0, 1.0);
 
     // Output for blending over opaque scene
     // Blend mode: src = ONE_MINUS_SRC_ALPHA, dst = SRC_ALPHA
     // Final = avgColor * (1 - reveal) + opaque * reveal
-    // Where reveal approximates transparency
-    float reveal = clamp(1.0 - avgAlpha, 0.0, 1.0);
 
     out.color = vec4(avgColor, reveal);
 

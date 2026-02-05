@@ -270,6 +270,6 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Dodge(movement);
 
 
-	if (inputInstance->GetIsPressed(KEY::LCTRL))
+	if (inputInstance->GetIsPressed(KEY::LCTRL) || EventsReader<Events::GameActionParry>{}.ExtractEvent() )
 		comp.Parry();
 }

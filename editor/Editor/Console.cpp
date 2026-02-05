@@ -105,6 +105,9 @@ namespace editor {
 			CONSOLE_LOG(LEVEL_INFO) << "-- UID: " << entity->GetComp<EntityUIDComponent>()->GetUID();
 			CONSOLE_LOG(LEVEL_INFO) << "-- Address: " << reinterpret_cast<size_t>(entity);
 			CONSOLE_LOG(LEVEL_INFO) << "-- Parent: " << (parentTransform ? parentTransform->GetEntity()->GetComp<EntityUIDComponent>()->GetUID() : 0);
+			CONSOLE_LOG(LEVEL_INFO) << "-- World Pos: " << entity->GetTransform().GetWorldPosition();
+			CONSOLE_LOG(LEVEL_INFO) << "-- World Rot: " << entity->GetTransform().GetWorldRotation();
+			CONSOLE_LOG(LEVEL_INFO) << "-- World Scale: " << entity->GetTransform().GetWorldScale();
 		}},
 #endif
 		}

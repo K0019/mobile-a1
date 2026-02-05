@@ -29,7 +29,7 @@ NODE_STATUS L_Melee_Dodge::OnUpdate(ecs::EntityHandle entity)
 	float rotation{ entity->GetTransform().GetWorldRotation().y };
 	rotation = std::rand() % 2 ? rotation - 120.f : rotation + 120.f;
 
-	if (charComp->currentDodgeTime <= 0.f && !dodged)
+	if (!charComp->IsDodging() && !dodged)
 	{
 		charComp->Dodge(Vec2{ std::cosf(math::ToRadians(rotation)), std::sinf(math::ToRadians(rotation)) });
 		dodged = true;

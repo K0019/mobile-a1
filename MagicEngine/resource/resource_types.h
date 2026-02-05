@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <filesystem>
 #include <array>
 #include <vector>
@@ -160,11 +161,39 @@ struct ResourceTraits<TextureAsset>
   struct HotData
   {
     // GfxRenderer integration
-    bool hasGfxTexture = false;
+    // Atomic for thread-safe publication from async upload thread to render thread.
+    // Use acquire/release ordering: writer stores with release after setting index/gen,
+    // reader loads with acquire before reading index/gen.
+    std::atomic<bool> hasGfxTexture{false};
     uint32_t gfxTextureIndex = 0;
     uint32_t gfxTextureGeneration = 0;
 
     HotData() = default;
+
+    // Explicit copy/move since std::atomic is not copyable
+    HotData(const HotData& other)
+      : hasGfxTexture(other.hasGfxTexture.load(std::memory_order_relaxed))
+      , gfxTextureIndex(other.gfxTextureIndex)
+      , gfxTextureGeneration(other.gfxTextureGeneration) {}
+
+    HotData& operator=(const HotData& other) {
+      hasGfxTexture.store(other.hasGfxTexture.load(std::memory_order_relaxed), std::memory_order_relaxed);
+      gfxTextureIndex = other.gfxTextureIndex;
+      gfxTextureGeneration = other.gfxTextureGeneration;
+      return *this;
+    }
+
+    HotData(HotData&& other) noexcept
+      : hasGfxTexture(other.hasGfxTexture.load(std::memory_order_relaxed))
+      , gfxTextureIndex(other.gfxTextureIndex)
+      , gfxTextureGeneration(other.gfxTextureGeneration) {}
+
+    HotData& operator=(HotData&& other) noexcept {
+      hasGfxTexture.store(other.hasGfxTexture.load(std::memory_order_relaxed), std::memory_order_relaxed);
+      gfxTextureIndex = other.gfxTextureIndex;
+      gfxTextureGeneration = other.gfxTextureGeneration;
+      return *this;
+    }
   };
 
   struct ColdData

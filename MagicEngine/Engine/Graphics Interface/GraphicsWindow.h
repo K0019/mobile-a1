@@ -32,6 +32,7 @@ public:
 	virtual bool GetIsPendingShutdown() const = 0;
 
 	virtual bool GetIsWindowMinimized() const = 0;
+	virtual bool GetIsFullscreen() const = 0;
 
 	virtual bool SetWindowIcon(const std::string& filepath) = 0;
 	virtual void SetWindowResolution(int width, int height) = 0;
@@ -66,6 +67,7 @@ public:
 	bool GetIsPendingShutdown() const override;
 	
 	bool GetIsWindowMinimized() const override;
+	bool GetIsFullscreen() const override;
 	
 	bool SetWindowIcon(const std::string& filepath) override;
 	void SetWindowResolution(int width, int height) override;

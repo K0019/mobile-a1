@@ -147,14 +147,20 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
             // Clamp pitch
             if (pitch < comp.minPitch) pitch = comp.minPitch;
             if (pitch > comp.maxPitch) pitch = comp.maxPitch;
-
-            comp.cameraPitch = pitch;
-            comp.cameraYaw = yaw;
         }
     }
     prevPos = currPos;
 
+    // Skip updating camera entity if game is paused
+    if (math::NearZero(GameTime::GetTimeScale()))
+        return;
+
     // Apply camera transform
+    if (cameraAllowed)
+    {
+        comp.cameraPitch = pitch;
+        comp.cameraYaw = yaw;
+    }
     Vec3 eulerAngles{ pitch, yaw, 0.0f };
     ecs::GetEntityTransform(&comp).SetWorldRotation(eulerAngles);
 

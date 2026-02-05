@@ -1499,6 +1499,13 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   gfx::Dimensions viewDims = hinaCtx->getDimensions(viewOutput);
   gfx::Dimensions swapchainDims = hinaCtx->getDimensions(swapchainImage);
 
+  // Get actual window dimensions for correct aspect ratio calculation.
+  // This handles VK_SUBOPTIMAL_KHR where swapchain dimensions may be stale
+  // (some drivers return SUBOPTIMAL instead of OUT_OF_DATE on window resize).
+  // The window dimensions represent the actual presentation target.
+  uint32_t windowWidth = m_gfxRenderer ? m_gfxRenderer->getWidth() : swapchainDims.width;
+  uint32_t windowHeight = m_gfxRenderer ? m_gfxRenderer->getHeight() : swapchainDims.height;
+
   // Get pre-transform for Android
   uint32_t preTransformValue = 0; // 0 = Identity
 #if defined(__ANDROID__)
@@ -1520,8 +1527,39 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   }
 #endif
 
-  // Fast blit path: for matching dimensions and no pre-transform
-  if (preTransformValue == 0 && viewDims.width == swapchainDims.width && viewDims.height == swapchainDims.height)
+  // Calculate letterbox/pillarbox viewport to maintain aspect ratio.
+  // Use WINDOW aspect ratio (actual presentation target) rather than swapchain dimensions,
+  // since swapchain may be suboptimal with stale dimensions on some drivers.
+  const float srcAspect = static_cast<float>(viewDims.width) / static_cast<float>(viewDims.height);
+  const float dstAspect = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
+
+  // Calculate letterbox in normalized [0,1] coordinates first
+  float normLetterboxX = 0.0f, normLetterboxY = 0.0f;
+  float normLetterboxW = 1.0f, normLetterboxH = 1.0f;
+
+  if (srcAspect > dstAspect) {
+    // Source is wider than destination - pillarbox (black bars on top/bottom)
+    normLetterboxH = dstAspect / srcAspect;
+    normLetterboxY = (1.0f - normLetterboxH) * 0.5f;
+  } else if (srcAspect < dstAspect) {
+    // Source is taller than destination - letterbox (black bars on left/right)
+    normLetterboxW = srcAspect / dstAspect;
+    normLetterboxX = (1.0f - normLetterboxW) * 0.5f;
+  }
+
+  // Scale normalized letterbox to swapchain dimensions.
+  // When compositor stretches a suboptimal swapchain to the window, the letterbox
+  // proportions are preserved because they were calculated for the window aspect ratio.
+  float letterboxX = normLetterboxX * static_cast<float>(swapchainDims.width);
+  float letterboxY = normLetterboxY * static_cast<float>(swapchainDims.height);
+  float letterboxW = normLetterboxW * static_cast<float>(swapchainDims.width);
+  float letterboxH = normLetterboxH * static_cast<float>(swapchainDims.height);
+
+  // Fast blit path: only valid when ALL dimensions match (view, swapchain, AND window).
+  // This avoids incorrect stretching when swapchain is suboptimal (stale dimensions).
+  bool dimensionsMatch = (viewDims.width == swapchainDims.width && viewDims.height == swapchainDims.height &&
+                          swapchainDims.width == windowWidth && swapchainDims.height == windowHeight);
+  if (preTransformValue == 0 && dimensionsMatch)
   {
     // Use hina blit for copy to swapchain
     hina_cmd_blit_texture(ctx.GetCmd(), viewOutput, swapchainImage, 0, 0, HINA_FILTER_NEAREST);
@@ -1529,14 +1567,18 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   }
 
   // Use shader-based blit to scale from fixed internal resolution to swapchain size
-  // and apply pre-rotation on Android
+  // with letterboxing to maintain aspect ratio
   this->EnsureBlitPipelineCreated();
 
   gfx::CommandBuffer& gfxCmd = ctx.GetCommandBuffer();
 
-  // Begin rendering to swapchain
+  // Begin rendering to swapchain - clear to black for letterbox bars
   gfx::RenderPass renderPassInfo{};
-  renderPassInfo.color[0] = {.loadOp = gfx::LoadOp::DontCare, .storeOp = gfx::StoreOp::Store};
+  renderPassInfo.color[0] = {
+    .loadOp = gfx::LoadOp::Clear,
+    .storeOp = gfx::StoreOp::Store,
+    .clearColor = {0.0f, 0.0f, 0.0f, 1.0f}  // Black letterbox bars
+  };
 
   gfx::Framebuffer framebuffer{};
   framebuffer.color[0] = {.texture = swapchainImage};
@@ -1546,19 +1588,19 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
 
   gfxCmd.beginRendering(renderPassInfo, framebuffer, deps);
 
-  // Bind pipeline and set up rendering
+  // Bind pipeline and set up rendering with letterboxed viewport
   gfxCmd.bindPipeline(m_blitPipeline.get());
   gfxCmd.setViewport({
-    .x = 0.0f,
-    .y = 0.0f,
-    .width = static_cast<float>(swapchainDims.width),
-    .height = static_cast<float>(swapchainDims.height)
+    .x = letterboxX,
+    .y = letterboxY,
+    .width = letterboxW,
+    .height = letterboxH
   });
   gfxCmd.setScissor({
-    .x = 0,
-    .y = 0,
-    .width = swapchainDims.width,
-    .height = swapchainDims.height
+    .x = static_cast<int32_t>(letterboxX),
+    .y = static_cast<int32_t>(letterboxY),
+    .width = static_cast<uint32_t>(letterboxW),
+    .height = static_cast<uint32_t>(letterboxH)
   });
 
   // Create transient bind group for source texture using the stored layout
