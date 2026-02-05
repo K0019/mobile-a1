@@ -1,5 +1,9 @@
 
 function start(entity)
-    Magic.LoadSceneAdditive("Scenes/buttonandroidscene.scene")
+    -- We only need the UI if on Android
+    if Magic.GetIsAndroid() then
+        Magic.LoadSceneAdditive("Scenes/buttonandroidscene.scene")
+    end
+
 end
 

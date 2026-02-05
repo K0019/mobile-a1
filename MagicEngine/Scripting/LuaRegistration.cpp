@@ -680,6 +680,13 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
 		.addProperty("EngineIsFullscreen", []() -> bool { return ST<GraphicsWindow>::Get()->GetIsFullscreen(); }, [](bool isFullscreen) -> void { ST<GraphicsWindow>::Get()->SetFullscreen(isFullscreen); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
+		.addFunction("GetIsAndroid", []() -> bool { 
+#ifdef __ANDROID__
+			return true;
+#else
+			return false;
+#endif
+			})
 		.addProperty("TimeScale", GameTime::GetTimeScale, GameTime::SetTimeScale)
 		.addFunction("LoadScene", [](const std::string& scenePath) {
 			ST<Scheduler>::Get()->Add([scenePath]() -> void {

@@ -119,6 +119,8 @@ void MagicEngine::Init(Context& context, bool startInGameMode)
 		Filepaths::fontsSave + "/Lato-Regular.ttf",
 		Filepaths::fontsSave + "/slkscre.ttf"
 	};
+	// Load resources that need to be loaded in advance
+	PreloadShit();
 
 	// initialize game
 	// ---------------
