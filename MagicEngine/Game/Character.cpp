@@ -108,10 +108,7 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 		vector = Vec2(sin(math::ToRadians(rotation.y)), cos(math::ToRadians(rotation.y)));
 	}
 
-	/// jk
-	//// Don't dodge nowhere
-	//if (vector.LengthSqr() == 0.0f)
-	//	return false;
+
 
 	SetMovementVector(vector.Normalized());
 	currentDodgeCooldown = dodgeCooldown;
@@ -383,6 +380,8 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Dodge Speed", &dodgeSpeed);
 	gui::VarInput("Throw Power", &throwPower);
 
+	gui::VarInput("Attacking Move Speed Multiplier", &attackingMoveSpeedMultiplier);
+
 	gui::VarInput("Parry Time Period", &parryTime);
 	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);
 	gui::VarInput("Parry Delusion", &parryDelusion);
@@ -443,7 +442,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Perform stun check
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
 	Vec3 currVel{};
-	if (physicsComp->GetIsKinematic())
+	if (physicsComp && physicsComp->GetIsKinematic())
 	{
 		JPH::Vec3 joltCurrVel = comp.joltCharRef->GetLinearVelocity();
 		currVel = Vec3{ joltCurrVel.GetX(), joltCurrVel.GetY(), joltCurrVel.GetZ() };
@@ -474,7 +473,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		{
 			Vec3 currPos{ characterTransform.GetWorldPosition() };
 			comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
-			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.z});
+			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(characterEntity, comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.z});
 			JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
 			characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
 		}
@@ -504,7 +503,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	//}
 
 	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x , (physicsComp->GetIsKinematic() ? 0.f : currVel.y), movement.y };
+	Vec3 moveDir = Vec3{ movement.x , (physicsComp && physicsComp->GetIsKinematic() ? 0.f : currVel.y), movement.y };
 
 	// If dodging, move faster
 	if (comp.IsDodging())
@@ -512,16 +511,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	else
 		moveDir *= comp.moveSpeed * comp.speedMultiplier;
 
-	if (!physicsComp->GetIsKinematic())
-		physicsComp->SetLinearVelocity(Vec3{ moveDir.x, currVel.y, moveDir.z });
-	else
-	{
-		Vec3 currPos{ characterTransform.GetWorldPosition() };
-		comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
-		ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, moveDir);
-		JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
-		characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
-	}
+	ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(characterEntity, comp.joltCharRef, Vec3{ moveDir.x, currVel.y, moveDir.z });
 
 	comp.currentDodgeCooldown -= GameTime::Dt();
 

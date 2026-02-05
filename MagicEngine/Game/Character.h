@@ -63,7 +63,7 @@ public:
 	float parryTime;
 	float parryCoolDownTime;
 	float parryDelusion;
-	float currParryCoolDown;
+	float attackingMoveSpeedMultiplier;
 
 	std::string dodgeSound;
 	std::string attackSound;
@@ -73,6 +73,8 @@ public:
 	float currentStunTime;
 	float currentDodgeCooldown;
 	float speedMultiplier;
+	float currParryCoolDown;
+	float currParryTime;
 
 	/*****************************************************************//*!
 	\brief
@@ -160,6 +162,7 @@ property_begin(CharacterMovementComponent)
 	property_var(moveSpeed),
 	property_var(rotateSpeed),
 	property_var(throwPower),
+	property_var(attackingMoveSpeedMultiplier),
 	property_var(parryCoolDownTime),
 	property_var(parryTime),
 	property_var(parryDelusion),

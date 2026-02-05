@@ -37,6 +37,7 @@
 #include "UI/DelusionBarComponent.h"
 #include "UI/DelusionRankComponent.h"
 #include "Engine/Platform/Android/AndroidUIDeleter.h"
+#include "Engine/Platform/Android/AndroidMaterialSwapper.h"
 #include "Engine/Platform/Desktop/DesktopUIDeleter.h"
 #include "Game/FlashComponent.h"
 #include "Game/MaterialSwapper.h"

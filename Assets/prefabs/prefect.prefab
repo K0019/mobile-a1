@@ -35,6 +35,9 @@
                 },
                 "137465014557233347": {
                     "_active": true,
+                    "weaponInfo": {
+                        "hash": 4768811728382449817
+                    },
                     "damage": 1.0,
                     "attackBox": {
                         "x": 1.0,
@@ -139,7 +142,7 @@
                     "_active": true,
                     "maxHealth": 200.0,
                     "currHealth": 200.0,
-                    "isInvincible": false
+                    "invincibleState": 0
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -160,6 +163,9 @@
                     "flashMaterial": {
                         "hash": 1903056716174195867
                     }
+                },
+                "12349219328363051475": {
+                    "_active": true
                 },
                 "15371168105777251288": {
                     "_active": true,
@@ -192,24 +198,25 @@
                         "y": 0.800000011920929,
                         "z": 0.0
                     },
-                    "radius": 0.30000001192092896,
+                    "radius": 0.20000000298023224,
                     "height": 1.2000000476837158,
-                    "moveSpeed": 3.0,
-                    "rotateSpeed": 14400.0,
-                    "throwPower": 0.0,
-                    "parryCoolDownTime": 0.0,
-                    "parryTime": 0.0,
-                    "parryDelusion": 0.0,
+                    "moveSpeed": 4.0,
+                    "rotateSpeed": 1440.0,
+                    "throwPower": 60.0,
+                    "attackingMoveSpeedMultiplier": 0.5,
+                    "parryCoolDownTime": 0.10000000149011612,
+                    "parryTime": 0.5,
+                    "parryDelusion": 10.0,
                     "dodgeSound": "",
                     "attackSound": "",
                     "hurtSound": "",
-                    "moveSpeed": 3.0,
-                    "rotateSpeed": 14400.0,
-                    "stunTimePerHit": 0.5,
-                    "groundFriction": 1.5,
-                    "dodgeCooldown": 2.5,
-                    "dodgeDuration": 1.0,
-                    "dodgeSpeed": 8.0,
+                    "moveSpeed": 4.0,
+                    "rotateSpeed": 1440.0,
+                    "stunTimePerHit": 0.05000000074505806,
+                    "groundFriction": 0.5,
+                    "dodgeCooldown": 1.0,
+                    "dodgeDuration": 0.20000000298023224,
+                    "dodgeSpeed": 6.0,
                     "hitDebugObject": {
                         "entityUid": 0
                     },
@@ -239,6 +246,23 @@
                             "hash": 1
                         }
                     ]
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.800000011920929,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 0.25,
+                        "y": 1.600000023841858,
+                        "z": 0.25
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
                 },
                 "18288371625365795113": {
                     "_active": true,

@@ -49,13 +49,19 @@ public:
 	EntityReference testReference;
 	float grabDistance;
 	float ultimateAttackDamage;
+	float enemyTargetRange;				// How far an enemy can be where the player still auto-rotates to face them when attacking
 	bool isUltimateAttack;
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
 
 	void Parry();
+	void GetEnemyTarget();
 	void UltimateAttack();
+	void Attack();
+
+	float currentRotateTime;
+	ecs::EntityHandle targetEntity;
 
 	property_vtable()
 
@@ -77,6 +83,7 @@ property_begin(PlayerMovementComponent)
 {
 	property_var(grabDistance),
 	property_var(ultimateAttackDamage),
+	property_var(enemyTargetRange),
 }
 property_vend_h(PlayerMovementComponent)
 
