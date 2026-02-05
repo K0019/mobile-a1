@@ -205,8 +205,11 @@ void GfxRenderer::shutdown() {
 
     // Note: hina_shutdown() handles GPU wait internally
 
-    // Shutdown RenderGraph (before HinaContext)
+    // Shutdown RenderGraph and features (before HinaContext)
+    // Must clear m_features BEFORE hina_shutdown() so feature destructors
+    // can properly destroy their pipelines while hina is still active
     m_registeredFeatures.clear();
+    m_features.clear();
     m_renderGraph.reset();
     m_hinaContext.reset();
 
@@ -280,14 +283,11 @@ void GfxRenderer::shutdown() {
     // Shutdown shader compiler
     hslc_shutdown();
 
-    // Shutdown HinaContext
+    // Shutdown HinaContext (already reset earlier, but check for safety)
     if (m_hinaContext) {
         m_hinaContext->shutdown();
         m_hinaContext.reset();
     }
-
-    // Clear registered features
-    m_registeredFeatures.clear();
 
     // Shutdown hina-vk
     hina_shutdown();
@@ -997,6 +997,7 @@ bool GfxRenderer::createDefaultResources() {
             LOG_ERROR("[GfxRenderer] Failed to create default white texture");
             return false;
         }
+        hina_wait_texture(m_defaultWhiteTexture);  // Ensure upload complete
         m_defaultWhiteTextureView = hina_texture_get_default_view(m_defaultWhiteTexture);
         LOG_DEBUG("[GfxRenderer] Created default white texture (1x1)");
     }
@@ -1019,6 +1020,7 @@ bool GfxRenderer::createDefaultResources() {
             LOG_ERROR("[GfxRenderer] Failed to create default normal texture");
             return false;
         }
+        hina_wait_texture(m_defaultNormalTexture);  // Ensure upload complete
         m_defaultNormalTextureView = hina_texture_get_default_view(m_defaultNormalTexture);
         LOG_DEBUG("[GfxRenderer] Created default normal texture (1x1)");
     }
