@@ -104,4 +104,5 @@ void PreloadShit()
 	ST<AssetManager>::Get()->GetContainer<WeaponInfo>().RequestLoadAll();
 	// Sounds don't play on first try
 	ST<AssetManager>::Get()->GetContainer<ResourceAudio>().RequestLoadAll();
+	ST<AssetManager>::Get()->GetContainer<ResourceAudioGroup>().RequestLoadAll();
 }

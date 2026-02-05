@@ -5,6 +5,7 @@
 #include "Game/Health.h"
 #include "Boss_Prefect_Util.h"
 #include "Graphics/AnimationComponent.h"
+#include "Managers/AudioManager.h"
 
 float L_Boss_Prefect_DisciplinaryAction::explosionSize = 5.0f;
 float L_Boss_Prefect_DisciplinaryAction::animationSpeed = 2.5f;
@@ -47,6 +48,7 @@ NODE_STATUS L_Boss_Prefect_DisciplinaryAction::OnUpdate([[maybe_unused]] ecs::En
                 }
                 animationStarted = false;
                 currentPhase = Phase::JUMPING;
+                ST<AudioManager>::Get()->PlaySound3D("lunge", false, entity->GetTransform().GetWorldPosition(), AudioType::SFX, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
             }
             break;
         }
