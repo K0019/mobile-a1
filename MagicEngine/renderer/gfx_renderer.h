@@ -448,6 +448,10 @@ public:
     // Get default sampler for external use
     gfx::Sampler getDefaultSampler() const { return m_defaultSampler; }
 
+    // Get default textures (raw hina handles, for sanity checks and fallbacks)
+    gfx::Texture getDefaultWhiteTexture() const { return m_defaultWhiteTexture; }
+    gfx::Texture getDefaultNormalTexture() const { return m_defaultNormalTexture; }
+
     // Skybox cubemap texture (set by GraphicsMain, used by scene feature)
     void setSkyboxTexture(gfx::Texture texture, gfx::TextureView view) {
         m_skyboxTexture = texture;

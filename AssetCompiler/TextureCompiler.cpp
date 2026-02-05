@@ -482,11 +482,11 @@ namespace compiler
         int w{}, h{}, comp{};
         unsigned char* pixels = nullptr;
 
-        if (source.compressedData)
+        if (source.getCompressedData())
         {
-            pixels = stbi_load_from_memory(source.compressedData, static_cast<int>(source.compressedSize), &w, &h, &comp, 4);
+            pixels = stbi_load_from_memory(source.getCompressedData(), static_cast<int>(source.getCompressedSize()), &w, &h, &comp, 4);
         }
-        else if (source.rawData)
+        else if (source.getRawData())
         {
             // No STB needed for raw data, just copy it.
             w = source.width;
@@ -496,7 +496,7 @@ namespace compiler
             pixels = new unsigned char[dataSize];
             if (pixels)
             {
-                memcpy(pixels, source.rawData, dataSize);
+                memcpy(pixels, source.getRawData(), dataSize);
             }
         }
 
@@ -846,7 +846,7 @@ namespace compiler
         }
 
         std::cout << "Generated thumbnail: " << outputPath << "\n";
-        result.createdTextureFiles.push_back(outputPath);
+        // Note: Don't add thumbnail to createdTextureFiles - it's not an asset to be imported
         m_lastThumbnailPath = outputPath;  // Store for meta file
         return true;
     }

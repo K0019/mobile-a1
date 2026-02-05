@@ -80,14 +80,24 @@ Varyings VSMain(VertexIn in) {
 FragOut FSMain(Varyings in) {
     FragOut out;
 
-    // Compute world-space normal with normal mapping
-    vec3 N = applyNormalMap(normalize(in.normal), normalize(in.tangent),
-                            in.bitangentSign, in.uv, u_normal);
+    // Process material using shared function
+    vec4 albedo;
+    vec3 N;
+    float roughness, metallic, ao, emissive;
+    uint flags;
 
-    // Write G-buffer outputs using shared logic
-    writeGBuffer(N, in.uv, in.objectIdF,
-                 out.albedo, out.normal, out.materialData, out.visibility);
+    bool keep = processGBufferMaterial(
+        in.normal, in.tangent, in.bitangentSign, in.uv,
+        material.packed[0], material.packed[1],
+        u_albedo, u_normal, u_metallicRoughness, u_emissive, u_occlusion,
+        albedo, N, roughness, metallic, ao, emissive, flags
+    );
 
+    if (!keep) discard;
+
+    // Encode and write G-buffer outputs
+    encodeGBufferOutputs(albedo, N, roughness, metallic, ao, emissive, flags, in.objectIdF,
+                         out.albedo, out.normal, out.materialData, out.visibility);
     return out;
 }
 #hina_end

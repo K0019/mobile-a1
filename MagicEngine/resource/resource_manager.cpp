@@ -7,6 +7,7 @@
 #include <numeric>
 #include <span>
 #include <stdexcept>
+#include <unordered_set>
 #include <stb_image.h>
 
 #include "core/engine/engine.h"
@@ -74,11 +75,16 @@ namespace
     for (const auto& src : gpuSkinning)
     {
       gfx::VertexSkinning dst;
-      // Pack bone indices (clamp to 255, should be well under 64)
-      dst.boneIndices[0] = static_cast<uint8_t>(std::min(src.indices.x, 255u));
-      dst.boneIndices[1] = static_cast<uint8_t>(std::min(src.indices.y, 255u));
-      dst.boneIndices[2] = static_cast<uint8_t>(std::min(src.indices.z, 255u));
-      dst.boneIndices[3] = static_cast<uint8_t>(std::min(src.indices.w, 255u));
+      // Pack bone indices: clamp INVALID (0xFFFFFFFF) to 0 to avoid accessing uninitialized bone slots.
+      // Bone 0 always exists (root), and weight will be 0 for unused slots, so bones[0] * 0 = 0.
+      // This prevents GPU artifacts from 0 * NaN = NaN on some hardware.
+      auto safeIndex = [](uint32_t idx) -> uint8_t {
+        return (idx == GPU_INVALID_BONE_INDEX) ? 0u : static_cast<uint8_t>(std::min(idx, 255u));
+      };
+      dst.boneIndices[0] = safeIndex(src.indices.x);
+      dst.boneIndices[1] = safeIndex(src.indices.y);
+      dst.boneIndices[2] = safeIndex(src.indices.z);
+      dst.boneIndices[3] = safeIndex(src.indices.w);
       // Pack weights as UNORM8 (0.0-1.0 -> 0-255)
       dst.weights[0] = static_cast<uint8_t>(std::clamp(src.weights.x * 255.0f + 0.5f, 0.0f, 255.0f));
       dst.weights[1] = static_cast<uint8_t>(std::clamp(src.weights.y * 255.0f + 0.5f, 0.0f, 255.0f));
@@ -422,11 +428,59 @@ namespace Resource
 
               if (auto* hot = m_texturePool.getHotData(it->handle)) {
                 if (gfxTexture.isValid()) {
-                  hot->hasGfxTexture = true;
-                  hot->gfxTextureIndex = gfxTexture.index;
-                  hot->gfxTextureGeneration = gfxTexture.generation;
-                  LOG_INFO("Async texture upload completed '{}': gfx={}:{}",
-                           it->textureName, gfxTexture.index, gfxTexture.generation);
+                  // Sanity check: detect if we're about to assign a default texture's index or hina ID
+                  // This would indicate a bug in texture ID management
+                  auto defaultWhite = materialSystem.getDefaultWhiteTexture();
+                  auto defaultNormal = materialSystem.getDefaultNormalTexture();
+                  // Also check against GfxRenderer's raw hina default textures
+                  gfx::Texture rendererWhite = gfxRenderer->getDefaultWhiteTexture();
+                  gfx::Texture rendererNormal = gfxRenderer->getDefaultNormalTexture();
+
+                  bool indexCollision = (gfxTexture.index == defaultWhite.index || gfxTexture.index == defaultNormal.index);
+                  bool hinaIdCollision = (result.textureId == rendererWhite.id || result.textureId == rendererNormal.id);
+
+                  // Also check against ResourceManager's own default magenta texture
+                  // (skip if this IS the magenta texture being uploaded, or if it's not ready yet)
+                  bool magentaCollision = false;
+                  if (m_defaultTexture.isValid() && it->handle != m_defaultTexture) {
+                    const auto* magentaHot = m_texturePool.getHotData(m_defaultTexture);
+                    if (magentaHot && magentaHot->hasGfxTexture.load(std::memory_order_acquire)) {
+                      // Check material system index collision
+                      if (gfxTexture.index == magentaHot->gfxTextureIndex) {
+                        magentaCollision = true;
+                        LOG_ERROR("BUG DETECTED: Texture '{}' matSys index {} == magenta texture index!",
+                                  it->textureName, gfxTexture.index);
+                      }
+                      // Check hina view ID collision (the actual GPU resource ID)
+                      gfx::TextureHandle magentaGfxHandle;
+                      magentaGfxHandle.index = magentaHot->gfxTextureIndex;
+                      magentaGfxHandle.generation = magentaHot->gfxTextureGeneration;
+                      gfx::TextureView magentaView = materialSystem.getTextureView(magentaGfxHandle);
+                      if (hina_texture_view_is_valid(magentaView) && result.viewId == magentaView.id) {
+                        magentaCollision = true;
+                        LOG_ERROR("BUG DETECTED: Texture '{}' hina view id {} == magenta texture view id!",
+                                  it->textureName, result.viewId);
+                      }
+                    }
+                  }
+
+                  if (indexCollision || hinaIdCollision || magentaCollision) {
+                    LOG_ERROR("BUG DETECTED: Texture '{}' collides with default texture! "
+                              "matSys index={} (white={}, normal={}), hina id={} (rendererWhite={}, rendererNormal={})",
+                              it->textureName, gfxTexture.index, defaultWhite.index, defaultNormal.index,
+                              result.textureId, rendererWhite.id, rendererNormal.id);
+                    // Don't assign - leave hasGfxTexture=false so it uses fallback
+                    // This prevents the texture from being "stuck" on the wrong index
+                  } else {
+                    // Write index/generation BEFORE setting hasGfxTexture.
+                    // Release ordering ensures readers see index/gen after seeing hasGfxTexture=true.
+                    hot->gfxTextureIndex = gfxTexture.index;
+                    hot->gfxTextureGeneration = gfxTexture.generation;
+                    hot->hasGfxTexture.store(true, std::memory_order_release);
+                    LOG_INFO("Async texture upload completed '{}': matSys={}:{}, hinaTex={}, hinaView={}",
+                             it->textureName, gfxTexture.index, gfxTexture.generation,
+                             result.textureId, result.viewId);
+                  }
                 } else {
                   LOG_WARNING("Failed to register async texture '{}' in GfxMaterialSystem", it->textureName);
                 }
@@ -753,17 +807,61 @@ namespace Resource
         TextureUploadResult result = oldest.future.get();
         if (result.valid) {
           if (m_context && m_context->renderer) {
-            auto& materialSystem = m_context->renderer->getMaterialSystem();
+            auto* gfxRenderer = m_context->renderer;
+            auto& materialSystem = gfxRenderer->getMaterialSystem();
             gfx::TextureHandle gfxTexture = materialSystem.registerPreCreatedTexture(
               {result.textureId}, {result.viewId}, result.width, result.height,
               static_cast<hina_format>(result.hinaFormat), result.isSRGB);
             if (auto* hot = m_texturePool.getHotData(oldest.handle)) {
               if (gfxTexture.isValid()) {
-                hot->hasGfxTexture = true;
-                hot->gfxTextureIndex = gfxTexture.index;
-                hot->gfxTextureGeneration = gfxTexture.generation;
-                LOG_INFO("Backpressure drain: texture '{}' uploaded: gfx={}:{}",
-                         oldest.textureName, gfxTexture.index, gfxTexture.generation);
+                // Sanity check: detect if we're about to assign a default texture's index or hina ID
+                auto defaultWhite = materialSystem.getDefaultWhiteTexture();
+                auto defaultNormal = materialSystem.getDefaultNormalTexture();
+                gfx::Texture rendererWhite = gfxRenderer->getDefaultWhiteTexture();
+                gfx::Texture rendererNormal = gfxRenderer->getDefaultNormalTexture();
+
+                bool indexCollision = (gfxTexture.index == defaultWhite.index || gfxTexture.index == defaultNormal.index);
+                bool hinaIdCollision = (result.textureId == rendererWhite.id || result.textureId == rendererNormal.id);
+
+                // Also check against ResourceManager's own default magenta texture
+                bool magentaCollision = false;
+                if (m_defaultTexture.isValid() && oldest.handle != m_defaultTexture) {
+                  const auto* magentaHot = m_texturePool.getHotData(m_defaultTexture);
+                  if (magentaHot && magentaHot->hasGfxTexture.load(std::memory_order_acquire)) {
+                    // Check material system index collision
+                    if (gfxTexture.index == magentaHot->gfxTextureIndex) {
+                      magentaCollision = true;
+                      LOG_ERROR("BUG DETECTED (backpressure): Texture '{}' matSys index {} == magenta texture index!",
+                                oldest.textureName, gfxTexture.index);
+                    }
+                    // Check hina view ID collision (the actual GPU resource ID)
+                    gfx::TextureHandle magentaGfxHandle;
+                    magentaGfxHandle.index = magentaHot->gfxTextureIndex;
+                    magentaGfxHandle.generation = magentaHot->gfxTextureGeneration;
+                    gfx::TextureView magentaView = materialSystem.getTextureView(magentaGfxHandle);
+                    if (hina_texture_view_is_valid(magentaView) && result.viewId == magentaView.id) {
+                      magentaCollision = true;
+                      LOG_ERROR("BUG DETECTED (backpressure): Texture '{}' hina view id {} == magenta texture view id!",
+                                oldest.textureName, result.viewId);
+                    }
+                  }
+                }
+
+                if (indexCollision || hinaIdCollision || magentaCollision) {
+                  LOG_ERROR("BUG DETECTED (backpressure): Texture '{}' collides with default texture! "
+                            "matSys index={} (white={}, normal={}), hina id={} (rendererWhite={}, rendererNormal={})",
+                            oldest.textureName, gfxTexture.index, defaultWhite.index, defaultNormal.index,
+                            result.textureId, rendererWhite.id, rendererNormal.id);
+                } else {
+                  // Write index/generation BEFORE setting hasGfxTexture.
+                  // Release ordering ensures readers see index/gen after seeing hasGfxTexture=true.
+                  hot->gfxTextureIndex = gfxTexture.index;
+                  hot->gfxTextureGeneration = gfxTexture.generation;
+                  hot->hasGfxTexture.store(true, std::memory_order_release);
+                  LOG_INFO("Backpressure drain: texture '{}' uploaded: matSys={}:{}, hinaTex={}, hinaView={}",
+                           oldest.textureName, gfxTexture.index, gfxTexture.generation,
+                           result.textureId, result.viewId);
+                }
               }
             }
           }
@@ -778,6 +876,32 @@ namespace Resource
         m_uploadQueue.push_back(std::move(job));
       }
       m_uploadQueueCV.notify_one();
+
+      // SYNC_TEXTURE_UPLOADS: Wait for this texture to complete immediately.
+      // This eliminates all concurrency issues at the cost of loading performance.
+      // Enable this to debug texture loading races.
+#ifdef SYNC_TEXTURE_UPLOADS
+      auto& pending = m_pendingTextureUploads.back();
+      pending.future.wait();
+      TextureUploadResult result = pending.future.get();
+      if (result.valid) {
+        auto& materialSystem = m_context->renderer->getMaterialSystem();
+        gfx::TextureHandle gfxTexture = materialSystem.registerPreCreatedTexture(
+          {result.textureId}, {result.viewId}, result.width, result.height,
+          static_cast<hina_format>(result.hinaFormat), result.isSRGB);
+        if (auto* hot = m_texturePool.getHotData(handle)) {
+          if (gfxTexture.isValid()) {
+            hot->gfxTextureIndex = gfxTexture.index;
+            hot->gfxTextureGeneration = gfxTexture.generation;
+            hot->hasGfxTexture.store(true, std::memory_order_release);
+            LOG_INFO("Sync texture upload completed '{}': gfx={}:{}",
+                     textureName, gfxTexture.index, gfxTexture.generation);
+          }
+        }
+        resolveWaitingMaterials_nolock(cacheKey);
+      }
+      m_pendingTextureUploads.pop_back();
+#endif
     }
 
     return handle;
@@ -1004,7 +1128,8 @@ namespace Resource
   gfx::TextureView ResourceManager::resolveTextureView(TextureHandle handle) const
   {
     const auto* hot = m_texturePool.getHotData(handle);
-    if (hot && hot->hasGfxTexture)
+    // Acquire ordering ensures we see index/generation written before hasGfxTexture was set
+    if (hot && hot->hasGfxTexture.load(std::memory_order_acquire))
     {
       gfx::TextureHandle gfxHandle;
       gfxHandle.index = static_cast<uint16_t>(hot->gfxTextureIndex);
@@ -1012,6 +1137,27 @@ namespace Resource
       gfx::TextureView view = m_context->renderer->getMaterialSystem().getTextureView(gfxHandle);
       if (hina_texture_view_is_valid(view))
       {
+        // Sanity check: if this is NOT the default magenta texture but we're returning
+        // the same view as the magenta texture, something went wrong during upload
+        if (handle != m_defaultTexture && m_defaultTexture.isValid()) {
+          const auto* magentaHot = m_texturePool.getHotData(m_defaultTexture);
+          if (magentaHot && magentaHot->hasGfxTexture.load(std::memory_order_acquire)) {
+            gfx::TextureHandle magentaGfxHandle;
+            magentaGfxHandle.index = magentaHot->gfxTextureIndex;
+            magentaGfxHandle.generation = magentaHot->gfxTextureGeneration;
+            gfx::TextureView magentaView = m_context->renderer->getMaterialSystem().getTextureView(magentaGfxHandle);
+            if (hina_texture_view_is_valid(magentaView) && view.id == magentaView.id) {
+              // This is the bug! Log it once per unique handle to avoid spam
+              static std::unordered_set<uint64_t> warnedHandles;
+              if (warnedHandles.find(handle.getId()) == warnedHandles.end()) {
+                warnedHandles.insert(handle.getId());
+                LOG_ERROR("BUG IN RESOLVE: Texture handle {} (matSys={}:{}) resolves to MAGENTA view id {}! "
+                          "Expected different view. This texture will permanently show as magenta.",
+                          handle.getId(), gfxHandle.index, gfxHandle.generation, view.id);
+              }
+            }
+          }
+        }
         return view;
       }
     }
@@ -1019,7 +1165,7 @@ namespace Resource
     auto& matSys = m_context->renderer->getMaterialSystem();
     if (m_defaultTexture.isValid()) {
       const auto* defHot = m_texturePool.getHotData(m_defaultTexture);
-      if (defHot && defHot->hasGfxTexture) {
+      if (defHot && defHot->hasGfxTexture.load(std::memory_order_acquire)) {
         gfx::TextureHandle gfxDef;
         gfxDef.index = static_cast<uint16_t>(defHot->gfxTextureIndex);
         gfxDef.generation = static_cast<uint16_t>(defHot->gfxTextureGeneration);
@@ -1213,7 +1359,8 @@ namespace Resource
 
     // Destroy gfx texture (hina-vk path) - also cleans up UI bind groups
     if (const auto* hot = m_texturePool.getHotData(handle)) {
-      if (hot->hasGfxTexture) {
+      // Acquire ordering ensures we see index/generation written before hasGfxTexture was set
+      if (hot->hasGfxTexture.load(std::memory_order_acquire)) {
         if (m_context && m_context->renderer) {
           if (auto* gfxRenderer = m_context->renderer) {
             gfx::TextureHandle gfxTexture;
@@ -1342,7 +1489,7 @@ namespace Resource
       auto it = m_textureCache.find(textureCacheKey);
       if (it != m_textureCache.end()) {
         if (const auto* hot = m_texturePool.getHotData(it->second)) {
-          textureReady = hot->hasGfxTexture;
+          textureReady = hot->hasGfxTexture.load(std::memory_order_acquire);
         }
       }
       if (!textureReady) {
@@ -1412,9 +1559,18 @@ namespace Resource
     gfxMat.baseColor = mat.baseColorFactor;
     gfxMat.roughness = mat.roughnessFactor;
     gfxMat.metallic = mat.metallicFactor;
-    gfxMat.emissive = glm::length(mat.emissiveFactor) > 0.0f ? 1.0f : 0.0f;
-    gfxMat.ao = mat.occlusionStrength;
+
+    // Emissive: scalar intensity for luminance, RGB color for tinting
+    float emissiveLuminance = glm::dot(mat.emissiveFactor, glm::vec3(0.2126f, 0.7152f, 0.0722f));
+    gfxMat.emissive = emissiveLuminance > 0.0f ? 1.0f : 0.0f;  // Factor to multiply with texture
+    gfxMat.emissiveColor = mat.emissiveFactor;
+
+    gfxMat.ao = 1.0f;  // AO is sampled from texture, not a constant
     gfxMat.rim = 0.0f;
+
+    // Extended PBR properties
+    gfxMat.normalScale = mat.normalScale;
+    gfxMat.occlusionStrength = mat.occlusionStrength;
 
     switch (mat.alphaMode) {
       case AlphaMode::Opaque: gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Opaque; break;
@@ -1423,6 +1579,7 @@ namespace Resource
     }
     gfxMat.alphaCutoff = mat.alphaCutoff;
     gfxMat.doubleSided = (mat.flags & DOUBLE_SIDED) != 0;
+    gfxMat.unlit = (mat.flags & UNLIT) != 0;
 
     // Resolve texture handles from cache
     auto resolveGfxTexture = [this](const MaterialTexture& matTex) -> gfx::TextureHandle {
@@ -1431,7 +1588,8 @@ namespace Resource
       auto it = m_textureCache.find(cacheKey);
       if (it != m_textureCache.end()) {
         if (const auto* texHot = m_texturePool.getHotData(it->second)) {
-          if (texHot->hasGfxTexture) {
+          // Acquire ordering ensures we see index/generation written before hasGfxTexture was set
+          if (texHot->hasGfxTexture.load(std::memory_order_acquire)) {
             gfx::TextureHandle gfxTex;
             gfxTex.index = texHot->gfxTextureIndex;
             gfxTex.generation = texHot->gfxTextureGeneration;
@@ -1553,4 +1711,5 @@ namespace Resource
     }
     return font.name + "_" + std::to_string(hash);
   }
+
 } // namespace AssetLoading

@@ -87,18 +87,24 @@ namespace compiler
     using MaterialFlags = ::MaterialFlags;
     using FilePathSource = ::FilePathSource;
 
-    // Compiler-specific embedded texture source - stores actual pixel data for compression
+    // Compiler-specific embedded texture source - owns actual pixel data for compression
     // (Different from engine's EmbeddedMemorySource which just stores identifiers)
+    // IMPORTANT: This struct owns its data - copies are made when loading from FBX
+    // to avoid dangling pointers when the FBX scene is freed.
     struct EmbeddedTextureSource
     {
         std::string name;
-        // For compressed embedded data (jpg, png, etc.)
-        const uint8_t* compressedData = nullptr;
-        size_t compressedSize = 0;
-        // For raw RGBA embedded data
-        const uint8_t* rawData = nullptr;
+        // For compressed embedded data (jpg, png, etc.) - owned by this struct
+        std::vector<uint8_t> compressedData;
+        // For raw RGBA embedded data - owned by this struct
+        std::vector<uint8_t> rawData;
         uint32_t width = 0;
         uint32_t height = 0;
+
+        // Accessors for backward compatibility with code expecting raw pointers
+        const uint8_t* getCompressedData() const { return compressedData.empty() ? nullptr : compressedData.data(); }
+        size_t getCompressedSize() const { return compressedData.size(); }
+        const uint8_t* getRawData() const { return rawData.empty() ? nullptr : rawData.data(); }
 
         bool operator<(const EmbeddedTextureSource& other) const { return name < other.name; }
         bool operator==(const EmbeddedTextureSource& other) const { return name == other.name; }

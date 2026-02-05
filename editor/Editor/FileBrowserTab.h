@@ -1,5 +1,6 @@
 #pragma once
 #include "Editor/AssetBrowserCategories.h"
+#include <array>
 
 namespace editor {
 
@@ -11,38 +12,53 @@ namespace editor {
 		void Render(const gui::TextBoxWithFilter& filter) override;
 		void Initialize(const std::filesystem::path& initialPath);
 
+		// Disable all standard toolbar controls - FileBrowserTab has its own filter UI
+		ToolbarCapabilities GetToolbarCapabilities() const override { return { false, false, false }; }
+
+		// Render custom filter controls in toolbar area
+		void RenderToolbarExtras() override;
+
 	private:
+		// Extended file entry with size info
+		struct FileEntry
+		{
+			std::string name;
+			std::string fullPath;
+			std::string extension;
+			bool isDirectory = false;
+			uint64_t size = 0;
+		};
+
+		// File list management
+		void RefreshDirectory();
+		std::vector<FileEntry> currentEntries_;
+		int selectedIndex_ = -1;
+
+		// Filter state
+		std::array<char, 256> localFilterBuffer_{};
+		int filterType_ = 0;  // 0=All, 1=3D, 2=Tex, 3=Dir
+		bool showHiddenFiles_ = false;
+
+		// Status feedback
+		std::string status_;
+		bool statusIsError_ = false;
+
+		// Existing filesystem
 		FileSystem fileSystem;
 
-		//VkDescriptorSet GetThumbnailDescriptor(std::filesystem::path::iterator::reference path);
-		struct SpriteImportConfig
-		{
-			int spriteCount = 1; /**< Number of sprites in the sheet */
-			std::filesystem::path targetPath; /**< Target path for the sprite import */
-			bool showDialog = false; /**< Flag to show the import dialog */
-			std::string spriteName; /**< Name of the sprite */
-			bool isSpriteSheet = false; /**< Flag indicating if the import is a sprite sheet */
-		};
-		SpriteImportConfig spriteConfig;
-
-		struct ThumbnailCache
-		{
-			//std::unordered_map<std::string, VkDescriptorSet> textureDescriptors; /**< Cache of texture descriptors */
-			std::unordered_map<std::string, bool> loadingStatus; /**< Cache of loading statuses */
-		};
-		ThumbnailCache thumbnailCache;
-
+		// Rendering helpers
 #ifdef IMGUI_ENABLED
-		bool RenderDirectoryItem(const FileSystem::FileEntry& entry);
-		void RenderItemLabel(const std::string& filename);
-		bool RenderFileItem(const FileSystem::FileEntry& entry);
-		void RenderItemContextMenu(const FileSystem::FileEntry& entry);
-
-		void ShowSpriteSheetDialog();
+		void RenderFileListContent(const gui::TextBoxWithFilter& filter);
+		void RenderInfoPanel();
+		void RenderItemContextMenu(const FileEntry& entry);
 #endif
-		void ImportAsSpriteSheet(const std::filesystem::path& path, int spriteCount, const std::string& baseName);
-		void ImportAsSprite(const std::filesystem::path& path, const std::string& name);
-		std::filesystem::path CopyIntoWorkingDir(const std::filesystem::path& file);
+
+		// Helpers
+		bool IsImportableFile(const std::string& ext) const;
+		const char* GetFileTypeIcon(const std::string& ext) const;
+		ImVec4 GetFileTypeColor(const std::string& ext) const;
+		std::string FormatFileSize(uint64_t size) const;
+		void ImportFile(const std::string& path);
 	};
 
 }

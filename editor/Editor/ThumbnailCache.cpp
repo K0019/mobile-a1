@@ -396,11 +396,19 @@ namespace editor
             return;
         }
 
+        AssetType type = DetermineAssetType(assetPath);
+
+        // Skip material and mesh thumbnails - generation not yet implemented
+        if (type == AssetType::Material || type == AssetType::Mesh)
+        {
+            return;
+        }
+
         MissingThumbnailInfo info;
         info.assetHash = hash;
         info.assetPath = assetPath;
         info.metaPath = metaPath;
-        info.type = DetermineAssetType(assetPath);
+        info.type = type;
 
         m_missingThumbnails[hash] = info;
         LOG_INFO("[ThumbnailCache] Tracked missing thumbnail for: {} (hash: {}, total missing: {})",

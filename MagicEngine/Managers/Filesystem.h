@@ -85,6 +85,12 @@ private:
         {".mp3", "importable"},
         {".ogg", "audio"},
         {".ttf", "font"},
-        {".otf", "font"}
+        {".otf", "font"},
+        // Video formats
+        {".mp4", "importable"},
+        {".webm", "importable"},
+        {".mkv", "importable"},
+        {".mov", "importable"},
+        {".avi", "importable"}
     };
 };

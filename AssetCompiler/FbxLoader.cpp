@@ -501,6 +501,14 @@ namespace compiler
 
                     uint32_t globalBoneIndex = boneIt->second;
 
+                    // Validate bone index is within skeleton bounds
+                    if (globalBoneIndex >= skeleton.bones.size()) {
+                        std::cerr << "[FbxLoader] Warning: Bone index " << globalBoneIndex
+                                  << " exceeds skeleton size " << skeleton.bones.size()
+                                  << " for bone '" << boneName << "'. Skipping weights.\n";
+                        continue;
+                    }
+
                     // cluster->vertices/weights are indexed by logical vertex
                     for (size_t wIdx = 0; wIdx < cluster->num_weights; ++wIdx)
                     {
@@ -610,9 +618,10 @@ namespace compiler
                 embedded.name = tex->name.length > 0
                     ? std::string(tex->name.data, tex->name.length)
                     : key;
-                embedded.compressedData = static_cast<const uint8_t*>(tex->content.data);
-                embedded.compressedSize = tex->content.size;
-                slot.texturePaths[key] = embedded;
+                // Copy the texture data to avoid dangling pointer when ufbx scene is freed
+                const uint8_t* srcData = static_cast<const uint8_t*>(tex->content.data);
+                embedded.compressedData.assign(srcData, srcData + tex->content.size);
+                slot.texturePaths[key] = std::move(embedded);
                 return;
             }
 

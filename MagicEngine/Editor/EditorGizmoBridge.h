@@ -31,6 +31,7 @@ struct EditorGizmoState {
 	ImGuizmo::OPERATION op = ImGuizmo::TRANSLATE;
 	ImGuizmo::MODE      mode = ImGuizmo::WORLD;
 	bool valid = true;
+	bool enabled = true;  // Toggle to show/hide gizmos
 };
 
 // Header-only global (one definition across TUs thanks to 'inline')
@@ -59,3 +60,5 @@ inline void EditorGizmo_Publish(
 *//******************************************************************/
 inline ImGuizmo::OPERATION EditorGizmo_Op() { return g_EditorGizmo.op; }
 inline ImGuizmo::MODE      EditorGizmo_Mode() { return g_EditorGizmo.mode; }
+inline bool                EditorGizmo_Enabled() { return g_EditorGizmo.enabled; }
+inline void                EditorGizmo_SetEnabled(bool enabled) { g_EditorGizmo.enabled = enabled; }

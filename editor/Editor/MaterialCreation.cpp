@@ -35,8 +35,16 @@ namespace editor {
 		ImGui::ColorEdit4("Base Color", &materialProps.baseColorFactor.x);
 		ImGui::SliderFloat("Metallic", &materialProps.metallicFactor, 0.0f, 1.0f);
 		ImGui::SliderFloat("Roughness", &materialProps.roughnessFactor, 0.0f, 1.0f);
-		ImGui::SliderFloat("Emissive", &materialProps.emissiveFactor.x, 0.0f, 10.0f);
+		ImGui::ColorEdit3("Emissive Color", &materialProps.emissiveFactor.x);
+		ImGui::SliderFloat("Normal Scale", &materialProps.normalScale, 0.0f, 2.0f);
+		ImGui::SliderFloat("Occlusion Strength", &materialProps.occlusionStrength, 0.0f, 1.0f);
 		ImGui::SliderFloat("Alpha Cutoff", &materialProps.alphaCutoff, 0.0f, 1.0f);
+		gui::Separator();
+
+		// ----- Material Flags -----
+		ImGui::Checkbox("Unlit", &isUnlit);
+		ImGui::SameLine();
+		ImGui::Checkbox("Double Sided", &isDoubleSided);
 		gui::Separator();
 
 		// ----- Alpha Mode -----
@@ -217,8 +225,16 @@ namespace editor {
 		changed |= ImGui::ColorEdit4("Base Color", &materialProps.baseColorFactor.x);
 		changed |= ImGui::SliderFloat("Metallic", &materialProps.metallicFactor, 0.0f, 1.0f);
 		changed |= ImGui::SliderFloat("Roughness", &materialProps.roughnessFactor, 0.0f, 1.0f);
-		changed |= ImGui::SliderFloat("Emissive", &materialProps.emissiveFactor.x, 0.0f, 10.0f);
+		changed |= ImGui::ColorEdit3("Emissive Color", &materialProps.emissiveFactor.x);
+		changed |= ImGui::SliderFloat("Normal Scale", &materialProps.normalScale, 0.0f, 2.0f);
+		changed |= ImGui::SliderFloat("Occlusion Strength", &materialProps.occlusionStrength, 0.0f, 1.0f);
 		changed |= ImGui::SliderFloat("Alpha Cutoff", &materialProps.alphaCutoff, 0.0f, 1.0f);
+		gui::Separator();
+
+		// ----- Material Flags -----
+		if (ImGui::Checkbox("Unlit", &isUnlit)) changed = true;
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Double Sided", &isDoubleSided)) changed = true;
 		gui::Separator();
 
 		// ----- Alpha Mode -----

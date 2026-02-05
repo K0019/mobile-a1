@@ -28,6 +28,7 @@ public:
   void SetupPasses(internal::RenderPassBuilder& passBuilder) override;
 
 private:
+  void ConvertVideoFrames(const internal::ExecutionContext& context);
   void RenderUi(const internal::ExecutionContext& context);
 
   void EnsurePipeline(const internal::ExecutionContext& context);

@@ -82,6 +82,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     endif()
 endif()
 
+# ----- Find Android NDK libraries -----
+find_library(mediandk-lib mediandk)
+
 # ----- Link everything -----
 # Use whole-archive for native_app_glue (ANativeActivity_onCreate entry point)
 # and MagicEngine (static initializers for component registration)
@@ -93,6 +96,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     -Wl,--no-whole-archive
     android
     log
+    ${mediandk-lib}    # For video playback (MediaCodec NDK)
     fmod_core
     fmod_studio
 )

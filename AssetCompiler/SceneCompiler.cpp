@@ -328,9 +328,10 @@ namespace compiler
     {
         TextureCompilationResults textureResults;
         std::set<std::pair<std::string, TextureDataSource>> uniqueTextureSources;
-        
-        for (const auto& material : scene.materials)
+
+        for (size_t matIdx = 0; matIdx < scene.materials.size(); ++matIdx)
         {
+            const auto& material = scene.materials[matIdx];
             for (const auto& [type, source] : material.texturePaths)
             {
                 if (source.index() != 0) // Not std::monostate
@@ -345,8 +346,11 @@ namespace compiler
             return textureResults;
         }
 
+        // Check what type the first texture source is
+        const auto& firstPair = *uniqueTextureSources.begin();
+
         // We just assume that everything inside textureSources are filepaths if the first element is one, because why would it be anything else
-        if (std::holds_alternative<FilePathSource>(std::get<TextureDataSource>(*uniqueTextureSources.begin())))
+        if (std::holds_alternative<FilePathSource>(firstPair.second))
         {
             // Resolve paths, make sure they actually exists
             std::vector<std::string> texturePathErrors;
@@ -438,7 +442,6 @@ namespace compiler
             for (const auto& [key, source] : uniqueTextureSources)
             {
                 CompilerOptions texOpts = options;
-
                 EmbeddedTextureSource embdeddedSource = std::get<EmbeddedTextureSource>(source);
 
                 std::string textureFilename;
@@ -451,9 +454,9 @@ namespace compiler
                 else
                 {
                     // Create a hash based name from the actual texture data content
-                    const uint8_t* dataPtr = embdeddedSource.compressedData ? embdeddedSource.compressedData : embdeddedSource.rawData;
+                    const uint8_t* dataPtr = embdeddedSource.getCompressedData() ? embdeddedSource.getCompressedData() : embdeddedSource.getRawData();
                     // Raw data size is width * height * 4 (RGBA)
-                    size_t dataSize = embdeddedSource.compressedData ? embdeddedSource.compressedSize
+                    size_t dataSize = embdeddedSource.getCompressedData() ? embdeddedSource.getCompressedSize()
                         : (static_cast<size_t>(embdeddedSource.width) * embdeddedSource.height * 4);
 
                     // Hash the actual data content, not the pointer address
@@ -495,8 +498,19 @@ namespace compiler
                     texOpts.texture.isSRGB = false;  // Occlusion is linear data
                 }
 
-                // Fix output filepath
-                std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+                // Fix output filepath - handle case where input is outside assets root
+                std::filesystem::path inputParent = std::filesystem::weakly_canonical(options.general.inputPath.parent_path());
+                std::filesystem::path assetsRootCanonical = std::filesystem::weakly_canonical(options.general.assetsRoot);
+                auto [rootEnd, nothing] = std::mismatch(assetsRootCanonical.begin(), assetsRootCanonical.end(), inputParent.begin());
+                bool isUnderAssetsRoot = (rootEnd == assetsRootCanonical.end());
+
+                std::filesystem::path relativeDir;
+                if (isUnderAssetsRoot) {
+                    relativeDir = std::filesystem::relative(inputParent, assetsRootCanonical);
+                } else {
+                    relativeDir = "";  // Input outside assets root - skip relative path
+                }
+
                 std::filesystem::path assetContainerName = options.general.inputPath.stem();
                 std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
                 texOpts.general.inputPath = "";
@@ -517,19 +531,19 @@ namespace compiler
                         int w{}, h{}, comp{};
                         unsigned char* pixels = nullptr;
 
-                        if (embdeddedSource.compressedData)
+                        if (embdeddedSource.getCompressedData())
                         {
                             pixels = stbi_load_from_memory(
-                                embdeddedSource.compressedData,
-                                static_cast<int>(embdeddedSource.compressedSize),
+                                embdeddedSource.getCompressedData(),
+                                static_cast<int>(embdeddedSource.getCompressedSize()),
                                 &w, &h, &comp, 4);
                         }
-                        else if (embdeddedSource.rawData)
+                        else if (embdeddedSource.getRawData())
                         {
                             // Raw data is already RGBA, just use it directly
                             w = embdeddedSource.width;
                             h = embdeddedSource.height;
-                            DetectedAlphaMode alphaMode = DetectAlphaMode(embdeddedSource.rawData, w, h);
+                            DetectedAlphaMode alphaMode = DetectAlphaMode(embdeddedSource.getRawData(), w, h);
                             textureResults.detectedAlphaModes[source] = alphaMode;
                         }
 
@@ -740,11 +754,30 @@ namespace compiler
 
 
 		// Writing to file timeu~~ :3
-        std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+        std::filesystem::path relativeDir;
+
+        // Check if input is under assets root - if not, skip the relative path calculation
+        // to avoid paths with ".." components that could escape the output directory
+        std::filesystem::path inputParent = std::filesystem::weakly_canonical(options.general.inputPath.parent_path());
+        std::filesystem::path assetsRootCanonical = std::filesystem::weakly_canonical(options.general.assetsRoot);
+
+        // Check if input is a subdirectory of assets root
+        auto [rootEnd, nothing] = std::mismatch(assetsRootCanonical.begin(), assetsRootCanonical.end(), inputParent.begin());
+        bool isUnderAssetsRoot = (rootEnd == assetsRootCanonical.end());
+
+        if (isUnderAssetsRoot) {
+            relativeDir = std::filesystem::relative(inputParent, assetsRootCanonical);
+        } else {
+            // Input is outside assets root - just use empty relative path
+            // This places output directly in outputPath/assetName/
+            relativeDir = "";
+        }
+
         std::filesystem::path assetContainerName = options.general.inputPath.stem();
         std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
+
         std::filesystem::create_directories(assetOutputDir);
-        
+
 		std::filesystem::path outFilePath = assetOutputDir / (options.general.inputPath.stem().string() + ".mesh");
 		std::ofstream outFile(outFilePath, std::ios::binary);
 

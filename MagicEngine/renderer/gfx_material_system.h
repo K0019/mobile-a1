@@ -64,9 +64,14 @@ struct GfxMaterial {
     glm::vec4 baseColor = glm::vec4(1.0f);
     float roughness = 0.5f;
     float metallic = 0.0f;
-    float emissive = 0.0f;
+    float emissive = 0.0f;  // Scalar emissive intensity (legacy, multiplied with emissiveColor)
     float ao = 1.0f;
     float rim = 0.0f;
+
+    // Extended PBR properties
+    float normalScale = 1.0f;
+    float occlusionStrength = 1.0f;
+    glm::vec3 emissiveColor = glm::vec3(1.0f);  // RGB emissive color (multiplied with emissive texture)
 
     // Texture handles (invalid = use default)
     TextureHandle albedoTexture;
@@ -84,6 +89,7 @@ struct GfxMaterial {
     AlphaMode alphaMode = AlphaMode::Opaque;
     float alphaCutoff = 0.5f;
     bool doubleSided = false;
+    bool unlit = false;  // Skip lighting calculations
 };
 
 /**
@@ -92,7 +98,7 @@ struct GfxMaterial {
 struct MaterialEntry {
     GfxMaterial material;
     PackedMaterial gpuData;
-    Buffer constantsUBO;         // Per-material UBO (16 bytes, Set 1 binding 0)
+    Buffer constantsUBO;         // Per-material UBO (32 bytes, Set 1 binding 0)
     BindGroup bindGroup;         // Material bind group (Set 1)
     uint16_t generation = 0;
     bool inUse = false;
