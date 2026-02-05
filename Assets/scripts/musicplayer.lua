@@ -1,4 +1,4 @@
-local musicVolume = 0.2
+local musicVolume = 0.25
 local ambienceVolume = 0.15
 local bossMusicVolume = 0.1
 
