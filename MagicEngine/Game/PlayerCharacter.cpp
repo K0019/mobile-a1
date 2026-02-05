@@ -198,7 +198,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	}
 
 	// Grabbing items
-	if (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent())
+	if (false && (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent()))
 	{
 		float closestDistance = comp.grabDistance * comp.grabDistance;
 		ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
@@ -239,7 +239,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	}
 
 	// Throw item
-	if (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionThrowItem>{}.ExtractEvent())
+	if (false && (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionThrowItem>{}.ExtractEvent()))
 	{
 		// Look for the nearest enemy
 		Vec3 throwDirection{ camForward.x,0.f,camForward.y  };
@@ -253,7 +253,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->HeavyAttack();
 
 
-	if (inputInstance->GetIsPressed(KEY::R))
+	if (inputInstance->GetIsPressed(KEY::E))
 		comp.UltimateAttack();
 
 	characterComp->SetMovementVector(movement);
@@ -266,10 +266,10 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->SetCenter(center);
 	}
 
-	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
+	if (inputInstance->GetIsDown(KEY::SPACE) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
 
 
-	if (inputInstance->GetIsPressed(KEY::LCTRL) || EventsReader<Events::GameActionParry>{}.ExtractEvent() )
+	if (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionParry>{}.ExtractEvent() )
 		comp.Parry();
 }

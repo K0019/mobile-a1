@@ -3759,25 +3759,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/bar ui (bg).ktx2",
-            "assetType": "Texture",
-            "sourcePath": "images/menu/setting/bar ui (bg).png",
-            "sourceTimestamp": 134146622664425826,
-            "compiledTimestamp": 17701917580026806,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 773079821074295629,
-                            "name": "bar ui (bg)0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/fbx/environment/theater/theater.mesh",
             "assetType": "Mesh",
             "sourcePath": "models/fbx/environment/theater.fbx",
@@ -3791,6 +3772,25 @@
                         {
                             "hash": 2903518838464448935,
                             "name": "theater0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/bar ui (bg).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/bar ui (bg).png",
+            "sourceTimestamp": 134146622664425826,
+            "compiledTimestamp": 17701917580026806,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 773079821074295629,
+                            "name": "bar ui (bg)0"
                         }
                     ]
                 }
@@ -4094,21 +4094,6 @@
             ]
         },
         {
-            "filepath": "videos/opening_cutscene.mp4",
-            "assetType": "Video",
-            "resources": [
-                {
-                    "resourceType": 5346129851170506652,
-                    "resourceEntries": [
-                        {
-                            "hash": 125735753437819627,
-                            "name": "opening_cutscene0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/baseball_field/fence/material_1.material",
             "assetType": "Material",
             "resources": [
@@ -4118,6 +4103,21 @@
                         {
                             "hash": 4267561969102124921,
                             "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "videos/opening_cutscene.mp4",
+            "assetType": "Video",
+            "resources": [
+                {
+                    "resourceType": 5346129851170506652,
+                    "resourceEntries": [
+                        {
+                            "hash": 125735753437819627,
+                            "name": "opening_cutscene0"
                         }
                     ]
                 }
@@ -11015,25 +11015,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/fullscreen (title).ktx2",
-            "assetType": "Texture",
-            "sourcePath": "images/menu/setting/fullscreen (title).png",
-            "sourceTimestamp": 134146667730885933,
-            "compiledTimestamp": 17701952896792697,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 233103063607267045,
-                            "name": "fullscreen (title)0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/floortest/floortest.mesh",
             "assetType": "Mesh",
             "sourcePath": "models/glb/floortest.glb",
@@ -11047,6 +11028,25 @@
                         {
                             "hash": 3609212888973871477,
                             "name": "floortest0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/fullscreen (title).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/fullscreen (title).png",
+            "sourceTimestamp": 134146667730885933,
+            "compiledTimestamp": 17701952896792697,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 233103063607267045,
+                            "name": "fullscreen (title)0"
                         }
                     ]
                 }
@@ -12621,25 +12621,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/settings pop up (bg).ktx2",
-            "assetType": "Texture",
-            "sourcePath": "images/menu/setting/settings pop up (bg).png",
-            "sourceTimestamp": 134146621608357005,
-            "compiledTimestamp": 17701897085151574,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 251320871762306425,
-                            "name": "settings pop up (bg)0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/level1_ground/default_material1.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -12653,6 +12634,25 @@
                         {
                             "hash": 830763498249694567,
                             "name": "default_material10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/settings pop up (bg).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/settings pop up (bg).png",
+            "sourceTimestamp": 134146621608357005,
+            "compiledTimestamp": 17701897085151574,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 251320871762306425,
+                            "name": "settings pop up (bg)0"
                         }
                     ]
                 }
@@ -13178,21 +13178,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/pause_restart_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 133261909493000027,
-                            "name": "pause_restart_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.022.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -13206,6 +13191,21 @@
                         {
                             "hash": 950169361514540791,
                             "name": "fantasy_floor.0220"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_restart_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 133261909493000027,
+                            "name": "pause_restart_thumb0"
                         }
                     ]
                 }
@@ -13731,25 +13731,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/slider (bg).ktx2",
-            "assetType": "Texture",
-            "sourcePath": "images/menu/setting/slider (bg).png",
-            "sourceTimestamp": 134146645279154850,
-            "compiledTimestamp": 17701909587913649,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 717962402684713315,
-                            "name": "slider (bg)0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.089.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -13763,6 +13744,25 @@
                         {
                             "hash": 1251966611641381537,
                             "name": "fantasy_floor.0890"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/slider (bg).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/slider (bg).png",
+            "sourceTimestamp": 134146645279154850,
+            "compiledTimestamp": 17701909587913649,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 717962402684713315,
+                            "name": "slider (bg)0"
                         }
                     ]
                 }

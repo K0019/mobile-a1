@@ -21,22 +21,28 @@ NODE_STATUS L_Range_MoveToWeapon::OnUpdate([[maybe_unused]] ecs::EntityHandle en
     if (!weapon || weapon->GetComp<GrabbableItemComponent>()->isHeld == true)
     {
         weapon = nullptr;
-		for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
-		{
+        float closestDist = math::PowSqr(collectRange * 5);
+        for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
+        {
             //Check if it's a valid weapon.
-			if (itemComp.GetEntity() == nullptr || 
-				itemComp.GetEntity()->GetComp<CharacterMovementComponent>() ||
-				itemComp->isHeld == true ||
-                !itemComp.GetEntity()->GetComp<NameComponent>() || 
+            if (itemComp.GetEntity() == nullptr ||
+                itemComp.GetEntity()->GetComp<CharacterMovementComponent>() ||
+                itemComp->isHeld == true ||
+                !itemComp.GetEntity()->GetComp<NameComponent>() ||
                 itemComp.GetEntity()->GetComp<NameComponent>()->GetName() != "WeaponChair")
-				continue;
+                continue;
 
             if (agentComp->FindPath(itemComp.GetEntity()->GetTransform().GetWorldPosition()).status != navmesh::NavMeshPathStatus::PATH_COMPLETE)
                 continue;
 
-            weapon = itemComp.GetEntity();
+            float dist{ (itemComp.GetEntity()->GetTransform().GetWorldPosition() - entity->GetTransform().GetWorldPosition()).LengthSqr() };
+            if (dist < closestDist)
+            {
+                weapon = itemComp.GetEntity();
+                closestDist = dist;
+            }
             break;
-		}
+        }
     }
 
     if (!weapon)
