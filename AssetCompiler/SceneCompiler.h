@@ -60,6 +60,10 @@ namespace compiler
         // Only affects non-glTF materials that defaulted to Opaque
         void RefineAlphaModes(Scene& scene, const TextureCompilationResults& textureResults);
 
+        // Material deduplication: merge identical materials, resolve name collisions
+        // Call before CompileTextures to reduce redundant texture compilation
+        void DeduplicateMaterials(Scene& scene);
+
         SceneLoader sceneLoader;
         CompilerOptions options;
     };

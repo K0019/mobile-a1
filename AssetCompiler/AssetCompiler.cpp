@@ -275,6 +275,7 @@ void SetupCLIArguments(Parser& parser)
     parser.AddOption("no-opt", "Disable mesh optimization", false, 0);
     parser.AddOption("no-tangents", "Skip tangent generation", false, 0);
     parser.AddOption("noflip-uv", "Don't flip UV coordinates", false, 0);
+    parser.AddOption("verbose", "Enable verbose logging for transforms and deduplication", false, 0);
 
     // Texture Options
     parser.AddOption("format", "Compression format (BC1, BC3, BC7, ASTC, ETC)", false, 1);
@@ -412,6 +413,7 @@ int main(int argc, char* argv[])
     options.mesh.optimize = !parser.HasOption("no-opt");
     options.mesh.generateTangents = !parser.HasOption("no-tangents");
     options.mesh.flipUVs = !parser.HasOption("noflip-uv"); //We flip by default anyway
+    options.general.verbose = parser.HasOption("verbose");
 
     // Texture Defaults
     if (auto count = parser.GetOption<int>("mipcount"))

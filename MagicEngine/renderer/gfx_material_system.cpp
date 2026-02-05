@@ -292,6 +292,9 @@ TextureHandle GfxMaterialSystem::createTexture(const TextureCreateInfo& info) {
         return TextureHandle{};
     }
 
+    // Wait for texture upload to complete to ensure it's not in UNDEFINED layout
+    hina_wait_texture(entry.texture);
+
     entry.view = hina_texture_get_default_view(entry.texture);
     entry.width = info.width;
     entry.height = info.height;
@@ -307,6 +310,11 @@ TextureHandle GfxMaterialSystem::registerPreCreatedTexture(Texture tex, TextureV
         LOG_ERROR("[GfxMaterialSystem] registerPreCreatedTexture: invalid texture");
         return TextureHandle{};
     }
+
+    // Wait for texture upload to complete before registering.
+    // This ensures the texture is no longer in UNDEFINED layout when materials reference it.
+    // This is the "lazy fix" for async upload synchronization issues.
+    hina_wait_texture(tex);
 
     TextureHandle handle = allocateTextureEntry();
     if (!handle.isValid()) return handle;

@@ -2665,6 +2665,7 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
 
     m_fallbackSkyboxTexture = hina_make_texture(&fallbackDesc);
     if (hina_texture_is_valid(m_fallbackSkyboxTexture)) {
+      hina_wait_texture(m_fallbackSkyboxTexture);  // Ensure upload complete
       m_fallbackSkyboxView = hina_texture_get_default_view(m_fallbackSkyboxTexture);
     } else {
       LOG_WARNING("[SceneRenderFeature] Failed to create fallback skybox cubemap");

@@ -367,6 +367,7 @@ namespace compiler
     // ===== Mesh Extraction =====
 
     ProcessedMesh FbxLoader::extractMesh([[maybe_unused]] const ufbx_scene* scene, const ufbx_mesh* fbxMesh,
+                                          const ufbx_node* meshNode,
                                           uint32_t meshIndex, const MeshOptions& options,
                                           const ProcessedSkeleton& skeleton)
     {
@@ -385,6 +386,11 @@ namespace compiler
 
         const bool hasNormals = fbxMesh->vertex_normal.exists;
         const bool hasUVs = fbxMesh->vertex_uv.exists;
+
+        // Get geometric transform matrix (transforms mesh geometry independently of node hierarchy)
+        // This handles FBX GeometricTranslation, GeometricRotation, GeometricScaling
+        ufbx_matrix geomToNode = meshNode ? meshNode->geometry_to_node : ufbx_identity_matrix;
+        ufbx_matrix normalMatrix = ufbx_matrix_for_normals(&geomToNode);
 
         // Triangulate and build per-face-corner vertices, then deduplicate
         // Pre-allocate for triangulated faces
@@ -418,14 +424,17 @@ namespace compiler
 
                     Vertex vertex;
 
-                    // Position - use the index into vertex_position
+                    // Position - apply geometric transform
                     ufbx_vec3 pos = ufbx_get_vertex_vec3(&fbxMesh->vertex_position, meshIndex_local);
+                    pos = ufbx_transform_position(&geomToNode, pos);
                     vertex.position = vec3(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
 
-                    // Normal
+                    // Normal - apply geometric transform (using normal matrix for correct handling)
                     if (hasNormals)
                     {
                         ufbx_vec3 norm = ufbx_get_vertex_vec3(&fbxMesh->vertex_normal, meshIndex_local);
+                        norm = ufbx_transform_direction(&normalMatrix, norm);
+                        norm = ufbx_vec3_normalize(norm);
                         vertex.normal = vec3(static_cast<float>(norm.x), static_cast<float>(norm.y), static_cast<float>(norm.z));
                     }
                     else
@@ -558,6 +567,10 @@ namespace compiler
                     ufbx_vec3 normOff = {};
                     if (offIdx < shape->normal_offsets.count)
                         normOff = shape->normal_offsets.data[offIdx];
+
+                    // Apply geometric transform to deltas (use direction transform since these are offsets)
+                    posOff = ufbx_transform_direction(&geomToNode, posOff);
+                    normOff = ufbx_transform_direction(&normalMatrix, normOff);
 
                     if (logicalVertex >= vertexToOutputMap.size()) continue;
 
@@ -719,6 +732,9 @@ namespace compiler
         }
 
         // Opacity
+        // Note: Many FBX exporters (especially Blender) set transparency_factor = 1.0 as a
+        // default value even for opaque materials. This is backwards from what you'd expect
+        // (1.0 should mean fully transparent), so we ignore transparency_factor = 1.0.
         if (mat->pbr.opacity.has_value)
         {
             slot.baseColorFactor.a = std::clamp(static_cast<float>(mat->pbr.opacity.value_real), 0.0f, 1.0f);
@@ -726,18 +742,19 @@ namespace compiler
         else if (mat->fbx.transparency_factor.has_value)
         {
             float transparency = static_cast<float>(mat->fbx.transparency_factor.value_real);
-            slot.baseColorFactor.a = std::clamp(1.0f - transparency, 0.0f, 1.0f);
+            // Ignore transparency_factor = 1.0 (common bogus default from Blender)
+            // and values very close to 0 (essentially opaque)
+            if (transparency > 0.01f && transparency < 0.99f)
+            {
+                slot.baseColorFactor.a = std::clamp(1.0f - transparency, 0.0f, 1.0f);
+            }
+            // else: keep alpha at 1.0 (opaque)
         }
 
         // Alpha mode - FBX doesn't have explicit alpha mode like glTF
-        // Default to opaque, same logic as the Assimp FBX fallback
+        // Default to opaque, only use Blend if alpha is actually low
         slot.alphaMode = AlphaMode::Opaque;
-        if (slot.baseColorFactor.a < 0.1f)
-        {
-            slot.alphaMode = AlphaMode::Blend;
-        }
-        else if (mat->fbx.transparency_factor.has_value &&
-                 mat->fbx.transparency_factor.value_real > 0.01)
+        if (slot.baseColorFactor.a < 0.99f)
         {
             slot.alphaMode = AlphaMode::Blend;
         }
@@ -832,8 +849,21 @@ namespace compiler
             loadedScene.meshes.reserve(fbxScene->meshes.count);
             for (size_t i = 0; i < fbxScene->meshes.count; ++i)
             {
+                const ufbx_mesh* mesh = fbxScene->meshes.data[i];
+
+                // Find the node that owns this mesh (for geometric transform)
+                const ufbx_node* meshNode = nullptr;
+                for (size_t n = 0; n < fbxScene->nodes.count; ++n)
+                {
+                    if (fbxScene->nodes.data[n]->mesh == mesh)
+                    {
+                        meshNode = fbxScene->nodes.data[n];
+                        break;
+                    }
+                }
+
                 loadedScene.meshes.push_back(
-                    extractMesh(fbxScene, fbxScene->meshes.data[i],
+                    extractMesh(fbxScene, mesh, meshNode,
                                 static_cast<uint32_t>(i), meshOptions, loadedScene.skeleton));
             }
 

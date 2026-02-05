@@ -22,6 +22,19 @@
 #include "renderer/gfx_mesh_storage.h"
 #include "renderer/gfx_material_system.h"
 
+// ============================================================================
+// FORCE_SYNC_GPU_UPLOADS: Force all GPU uploads (textures & meshes) to be synchronous.
+// This eliminates concurrency/synchronization issues at the cost of loading performance.
+// Comment out this line to re-enable async uploads once sync issues are resolved.
+// ============================================================================
+#define FORCE_SYNC_GPU_UPLOADS
+
+#ifdef FORCE_SYNC_GPU_UPLOADS
+  static constexpr bool kAsyncUploadsEnabled = false;
+#else
+  static constexpr bool kAsyncUploadsEnabled = true;
+#endif
+
 namespace
 {
   constexpr float MORPH_DELTA_EPSILON = 1e-6f;
@@ -174,6 +187,7 @@ namespace Resource
 
   void ResourceManager::startUploadThread()
   {
+    if (!kAsyncUploadsEnabled) return;  // No thread needed for sync uploads
     if (m_uploadThreadRunning.load()) return;
 
     m_uploadThreadStop.store(false);
@@ -383,6 +397,8 @@ namespace Resource
 
   void ResourceManager::pollAsyncUploads()
   {
+    if (!kAsyncUploadsEnabled) return;  // Nothing to poll for sync uploads
+
     // --- Meshes ---
     {
       std::lock_guard<std::mutex> lock(m_pendingUploadsMutex);
@@ -569,7 +585,8 @@ namespace Resource
     cacheLock.unlock();
 
     // Queue async upload (heavy CPU + GPU work on upload thread)
-    if (m_context && m_context->renderer && m_uploadThreadRunning.load()) {
+    bool didAsyncUpload = false;
+    if (kAsyncUploadsEnabled && m_context && m_context->renderer && m_uploadThreadRunning.load()) {
       auto vertices = mesh.vertices;
       auto indices = mesh.indices;
       std::string meshName = mesh.name;
@@ -649,6 +666,61 @@ namespace Resource
         m_uploadQueue.push_back(std::move(job));
       }
       m_uploadQueueCV.notify_one();
+      didAsyncUpload = true;
+    }
+
+    // Synchronous fallback when async is disabled
+    if (!didAsyncUpload && m_context && m_context->renderer) {
+      auto* gfxRenderer = m_context->renderer;
+      auto& meshStorage = gfxRenderer->getMeshStorage();
+
+      static_assert(sizeof(Vertex) == sizeof(gfx::FullVertex), "Vertex layouts must match");
+      const auto* gfxVertices = reinterpret_cast<const gfx::FullVertex*>(mesh.vertices.data());
+
+      gfx::MeshHandle gfxMesh;
+      uint32_t vertexCount = static_cast<uint32_t>(mesh.vertices.size());
+      uint32_t indexCount = static_cast<uint32_t>(mesh.indices.size());
+      bool hasSkinning = !gpuSkinning.empty();
+
+      if (hasSkinning) {
+        auto compactSkinning = buildCompactSkinningBuffer(gpuSkinning);
+        std::vector<gfx::VertexPosition> positions(vertexCount);
+        std::vector<gfx::VertexAttributes> attributes(vertexCount);
+        glm::vec3 minPos(std::numeric_limits<float>::max());
+        glm::vec3 maxPos(std::numeric_limits<float>::lowest());
+
+        for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+          const auto& v = gfxVertices[i];
+          positions[i] = gfx::VertexPosition(v.position);
+          float bitangentSign = v.tangent.w;
+          glm::vec3 tangent = glm::vec3(v.tangent);
+          attributes[i].pack(v.normal, tangent, bitangentSign, v.getUV(), 0);
+          minPos = glm::min(minPos, v.position);
+          maxPos = glm::max(maxPos, v.position);
+        }
+
+        gfx::MeshBounds bounds;
+        bounds.aabbMin = minPos;
+        bounds.aabbMax = maxPos;
+        bounds.center = (minPos + maxPos) * 0.5f;
+        bounds.radius = glm::length(maxPos - bounds.center);
+
+        gfxMesh = meshStorage.uploadPackedSkinned(
+          positions.data(), attributes.data(), compactSkinning.data(),
+          vertexCount, mesh.indices.data(), indexCount, bounds);
+      } else {
+        gfxMesh = meshStorage.upload(gfxVertices, vertexCount, mesh.indices.data(), indexCount);
+      }
+
+      if (auto* hot = m_meshPool.getHotData(handle)) {
+        if (gfxMesh.isValid()) {
+          hot->gfxMeshIndex = gfxMesh.index;
+          hot->gfxMeshGeneration = gfxMesh.generation;
+          hot->hasGfxMesh = true;
+          LOG_INFO("Sync mesh upload '{}': verts={}, indices={}, gfx={}:{}",
+                   mesh.name, vertexCount, indexCount, gfxMesh.index, gfxMesh.generation);
+        }
+      }
     }
 
     return handle;
@@ -727,8 +799,9 @@ namespace Resource
     m_textureCache[cacheKey] = handle;
     cacheLock.unlock();
 
-    // Queue async GPU upload on the upload thread
-    if (m_context && m_context->renderer && !texture.data.empty() && m_uploadThreadRunning.load()) {
+    // Queue async GPU upload on the upload thread (when enabled)
+    bool didAsyncUpload = false;
+    if (kAsyncUploadsEnabled && m_context && m_context->renderer && !texture.data.empty() && m_uploadThreadRunning.load()) {
       gfx::Format gfxFormat = texture.textureDesc.format;
       if (texture.sRGB && !gfx::isFormatSRGB(gfxFormat)) {
         gfx::Format srgbFormat = gfx::convertFormatSRGB(gfxFormat, true);
@@ -876,32 +949,52 @@ namespace Resource
         m_uploadQueue.push_back(std::move(job));
       }
       m_uploadQueueCV.notify_one();
+      didAsyncUpload = true;
+    }
 
-      // SYNC_TEXTURE_UPLOADS: Wait for this texture to complete immediately.
-      // This eliminates all concurrency issues at the cost of loading performance.
-      // Enable this to debug texture loading races.
-#ifdef SYNC_TEXTURE_UPLOADS
-      auto& pending = m_pendingTextureUploads.back();
-      pending.future.wait();
-      TextureUploadResult result = pending.future.get();
-      if (result.valid) {
+    // Synchronous fallback when async is disabled
+    if (!didAsyncUpload && m_context && m_context->renderer && !texture.data.empty()) {
+      gfx::Format gfxFormat = texture.textureDesc.format;
+      if (texture.sRGB && !gfx::isFormatSRGB(gfxFormat)) {
+        gfx::Format srgbFormat = gfx::convertFormatSRGB(gfxFormat, true);
+        if (srgbFormat != gfxFormat) {
+          gfxFormat = srgbFormat;
+        }
+      }
+      hina_format hinaFormat = gfxFormatToHinaFormat(gfxFormat);
+
+      hina_texture_desc desc = hina_texture_desc_default();
+      desc.width = texture.width;
+      desc.height = texture.height;
+      desc.format = hinaFormat;
+      desc.mip_levels = 1;
+      desc.usage = HINA_TEXTURE_SAMPLED_BIT;
+      desc.initial_data = texture.data.data();
+      desc.label = texture.name.c_str();
+
+      hina_texture tex = hina_make_texture(&desc);
+      if (hina_texture_is_valid(tex)) {
+        hina_wait_texture(tex);  // Ensure upload complete
+        hina_texture_view view = hina_texture_get_default_view(tex);
+
         auto& materialSystem = m_context->renderer->getMaterialSystem();
         gfx::TextureHandle gfxTexture = materialSystem.registerPreCreatedTexture(
-          {result.textureId}, {result.viewId}, result.width, result.height,
-          static_cast<hina_format>(result.hinaFormat), result.isSRGB);
+          tex, view, texture.width, texture.height, hinaFormat, texture.sRGB);
+
         if (auto* hot = m_texturePool.getHotData(handle)) {
           if (gfxTexture.isValid()) {
             hot->gfxTextureIndex = gfxTexture.index;
             hot->gfxTextureGeneration = gfxTexture.generation;
             hot->hasGfxTexture.store(true, std::memory_order_release);
-            LOG_INFO("Sync texture upload completed '{}': gfx={}:{}",
-                     textureName, gfxTexture.index, gfxTexture.generation);
+            LOG_INFO("Sync texture upload '{}': {}x{}, gfx={}:{}",
+                     texture.name, texture.width, texture.height,
+                     gfxTexture.index, gfxTexture.generation);
           }
         }
         resolveWaitingMaterials_nolock(cacheKey);
+      } else {
+        LOG_WARNING("Sync texture upload failed for '{}'", texture.name);
       }
-      m_pendingTextureUploads.pop_back();
-#endif
     }
 
     return handle;
