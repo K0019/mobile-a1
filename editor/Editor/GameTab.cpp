@@ -108,8 +108,8 @@ namespace editor {
                 }
 
                 gui::ThumbnailLabel(weaponName, thumbnailSize);
-                grid.NextItem();
             }
+            grid.NextItem();
         }
 #endif
     }
