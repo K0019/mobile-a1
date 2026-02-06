@@ -58,7 +58,8 @@ NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                     if (clipDuration > 0.0f && animComp->timeA >= clipDuration * 0.9f)
                     {
                         waitingForAnimation = false;
-                        
+                        ST<AudioManager>::Get()->PlaySound3D("boss slap", false, entity->GetTransform().GetWorldPosition(), AudioType::SFX, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
+
                         // Check if all attacks are done
                         if (currentAttackCount == 0)
                         {
@@ -86,6 +87,7 @@ NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                     // TODO: Fix boss extents to correct values instead of hardcoding
                     entity->GetComp<GrabbableItemComponent>()->Attack(entity->GetTransform().GetWorldPosition(), Vec3{ 1.0f, 1.0f, 1.0f });
                     ST<AudioManager>::Get()->PlaySound3D("lunge", false, entity->GetTransform().GetWorldPosition(), AudioType::SFX, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
+
                     animComp->TransitionTo(5858584981951944119, 0.1f);
                     waitingForAnimation = true;
                 }

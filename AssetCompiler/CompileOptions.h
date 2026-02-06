@@ -182,6 +182,7 @@ namespace compiler
         std::filesystem::path inputPath;
         std::filesystem::path outputPath;
         BUILD_PLATFORM platform = BUILD_PLATFORM::WINDOWS;  // Target platform for compilation
+        bool verbose = false;  // Enable verbose logging for transforms and deduplication
     };
 
     struct MeshOptions

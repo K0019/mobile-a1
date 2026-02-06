@@ -39,9 +39,8 @@ public:
 	class ChannelManager
 	{
 	private:
-		static constexpr uint32_t INVALID_HANDLE = 0;
-
 	public:
+		static constexpr uint32_t INVALID_HANDLE = 0;
 		ChannelManager(uint16_t maxChannels);
 
 		uint32_t RegisterChannel(FMOD::Channel* channel);
@@ -96,6 +95,9 @@ public:
 	void ConfigureListener(float dopplerScale, float distanceFactor, float rolloffScale);
 	void StopAllSounds();
 	void SetGroupVolume(AudioType type, float vol);
+
+	static FMOD_RESULT F_CALLBACK ChannelCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE controlType,
+		FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* commandData1, void* commandData2);
 
 #ifdef __ANDROID__
     static FMOD_RESULT F_CALLBACK FileOpenCallback(const char* name, unsigned int* filesize, void** handle, void* userdata);

@@ -39,6 +39,7 @@ namespace compiler
 
         // Meshes
         ProcessedMesh extractMesh(const ufbx_scene* scene, const ufbx_mesh* mesh,
+                                  const ufbx_node* meshNode,  // Node for geometric transform
                                   uint32_t meshIndex, const MeshOptions& options,
                                   const ProcessedSkeleton& skeleton);
 

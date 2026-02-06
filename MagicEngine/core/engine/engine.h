@@ -232,7 +232,7 @@ void Engine<AppType>::InitializeCoreSystems()
   // On Android, initialize() is called in handleSurfaceCreated()
   context.renderer = &m_renderer;
   m_renderer.setResourceManager(&m_assetSystem);
-  m_assetSystem.postRendererInitialize();
+  // Note: postRendererInitialize() is called in OnSurfaceCreated() after hina-vk is initialized
   LOG_INFO("Core systems initialized (headless)");
 }
 
@@ -271,6 +271,8 @@ void Engine<AppType>::OnSurfaceCreated()
     }
     // Start async upload thread now that hina-vk is initialized
     m_assetSystem.startUploadThread();
+    // Create default resources now that renderer is ready
+    m_assetSystem.postRendererInitialize();
   } else {
     // Recreate surface after lifecycle event (Android)
     m_renderer.handleSurfaceCreated(nativeWindow);

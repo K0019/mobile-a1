@@ -276,6 +276,7 @@ void GraphicsMain::InitDefaultSkybox()
 		CONSOLE_LOG(LEVEL_WARNING) << "Failed to create skybox cubemap texture via hina-vk";
 		return;
 	}
+	hina_wait_texture(skyboxTex);  // Ensure upload complete before use
 
 	gfx::TextureView skyboxView = hina_texture_get_default_view(skyboxTex);
 	if (!hina_texture_view_is_valid(skyboxView))

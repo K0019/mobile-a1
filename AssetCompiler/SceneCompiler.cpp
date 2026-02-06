@@ -50,6 +50,8 @@ using Resource::MeshLoading::calculateBounds;
 #include <iostream>
 #include <span>
 #include <utility>
+#include <sstream>
+#include <unordered_map>
 
 #include <stb_image.h>  // For alpha detection (implementation in TextureCompiler.cpp)
 
@@ -247,6 +249,10 @@ namespace compiler
         {
             result.warnings.insert(result.warnings.end(), sceneProcessResult.warnings.begin(), sceneProcessResult.warnings.end());
         }
+
+        // Deduplicate materials before texture compilation to reduce redundant work
+        ProgressReporter::ReportProgress(0.35f, "Deduplicating materials", filename);
+        DeduplicateMaterials(scene);
 
         // Save the data
         ProgressReporter::ReportProgress(0.4f, "Saving meshes", filename);
@@ -872,6 +878,102 @@ namespace compiler
                 break;
             }
         }
+    }
+
+    void SceneCompiler::DeduplicateMaterials(Scene& scene)
+    {
+        if (scene.materials.empty()) return;
+
+        const size_t originalCount = scene.materials.size();
+
+        // Phase 1: Compute signatures and group identical materials
+        std::vector<MaterialSignature> signatures;
+        signatures.reserve(scene.materials.size());
+        for (const auto& mat : scene.materials)
+            signatures.push_back(MaterialSignature::fromMaterial(mat));
+
+        // Map: signature hash -> canonical material index in NEW array
+        std::unordered_map<size_t, uint32_t> signatureToCanonical;
+
+        // Remap table: old index -> new index
+        std::vector<uint32_t> remapTable(scene.materials.size());
+
+        // Unique materials after deduplication
+        std::vector<ProcessedMaterialSlot> uniqueMaterials;
+
+        for (uint32_t i = 0; i < scene.materials.size(); ++i)
+        {
+            size_t sigHash = signatures[i].hash();
+            auto it = signatureToCanonical.find(sigHash);
+
+            if (it != signatureToCanonical.end())
+            {
+                // Potential duplicate found - verify with full comparison (hash collision check)
+                uint32_t canonicalOrigIdx = it->second;  // Original index of canonical material
+                if (signatures[i] == signatures[canonicalOrigIdx])
+                {
+                    // Get the new index from the remap table
+                    uint32_t canonicalNewIdx = remapTable[canonicalOrigIdx];
+                    remapTable[i] = canonicalNewIdx;
+                    if (options.general.verbose)
+                    {
+                        std::cout << "  [Dedup] Material '" << scene.materials[i].name
+                                  << "' merged with '" << uniqueMaterials[canonicalNewIdx].name << "'\n";
+                    }
+                    continue;
+                }
+            }
+
+            // New unique material
+            uint32_t newIndex = static_cast<uint32_t>(uniqueMaterials.size());
+            signatureToCanonical[sigHash] = i;  // Store original index for signature comparison
+            remapTable[i] = newIndex;
+            uniqueMaterials.push_back(scene.materials[i]);
+        }
+
+        // Phase 2: Resolve name collisions among unique materials
+        std::map<std::string, std::vector<uint32_t>> nameToIndices;
+        for (uint32_t i = 0; i < uniqueMaterials.size(); ++i)
+            nameToIndices[ToLower(uniqueMaterials[i].name)].push_back(i);
+
+        for (auto& [name, indices] : nameToIndices)
+        {
+            if (indices.size() > 1)
+            {
+                // Name collision - append hash suffix to duplicates (keep first occurrence as-is)
+                for (size_t j = 1; j < indices.size(); ++j)
+                {
+                    auto& mat = uniqueMaterials[indices[j]];
+                    MaterialSignature sig = MaterialSignature::fromMaterial(mat);
+                    size_t contentHash = sig.hash();
+                    // Take first 6 hex chars of hash
+                    std::ostringstream oss;
+                    oss << std::hex << (contentHash & 0xFFFFFF);
+                    std::string oldName = mat.name;
+                    mat.name += "_" + oss.str();
+                    if (options.general.verbose)
+                    {
+                        std::cout << "  [Rename] Material name collision resolved: '" << oldName
+                                  << "' -> '" << mat.name << "'\n";
+                    }
+                }
+            }
+        }
+
+        // Phase 3: Update mesh material references
+        for (auto& mesh : scene.meshes)
+        {
+            if (mesh.materialIndex < remapTable.size())
+                mesh.materialIndex = remapTable[mesh.materialIndex];
+        }
+
+        // Replace materials array
+        if (options.general.verbose || uniqueMaterials.size() < originalCount)
+        {
+            std::cout << "  [Dedup] Materials: " << originalCount
+                      << " -> " << uniqueMaterials.size() << "\n";
+        }
+        scene.materials = std::move(uniqueMaterials);
     }
 
     void SceneCompiler::SaveMaterialData(Scene& scene, CompilationResult& result, const TextureCompilationResults& textureResults)
