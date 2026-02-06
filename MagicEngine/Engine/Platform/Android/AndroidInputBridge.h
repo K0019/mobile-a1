@@ -17,7 +17,7 @@
 
 	  TODO: Merge this into Input.h
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content Â© 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -47,42 +47,24 @@ struct TouchState {
 };
 
 namespace AndroidInputBridge {
-/*****************************************************************//*!
-\brief
-	Sets up the ryEngine touch callback(s) and resets internal state.
-*//******************************************************************/
-	void Initialize();                 // call once in MagicEngine::Init (Android only)
+    static constexpr int MAX_POINTERS = 5;
 
+    void Initialize();
 
-/*****************************************************************//*!
-\brief
-	Get the current debounced touch state for this frame.
-\return
-	 const TouchState&  Reference to the live state object.
-*//******************************************************************/
-	const TouchState& State();         // read in your component
+    const TouchState& State(int pointerId = 0);
 
-/*****************************************************************//*!
-\brief
-	Clear one-frame edge flags after you’ve consumed the state.
-*//******************************************************************/
-	void ClearEdges();                 // call once per frame after reading (honestly not sure if needed tho)
+    void ClearEdges();
+
+    void PublishVirtualStick(const Vec2& v);
+    Vec2 ReadVirtualStick();
+
+    TouchOwner Owner(int pointerId = 0);
+
+    bool TryCapture(TouchOwner who, int pointerId = 0);
+
+    void Release(TouchOwner who);
+
+    int  GetOwnedPointer(TouchOwner who);
+
+    int  FindUnownedJustDown();
 }
-
-namespace AndroidInputBridge {
-	void PublishVirtualStick(const Vec2& v);  // called by your component
-	Vec2  ReadVirtualStick();                  // used by Input system
-
-
-
-	// Returns current owner (for read-only checks).
-	TouchOwner Owner();
-
-	// Try to acquire exclusive touch ownership for this frame sequence.
-	// Returns true if granted (or already owned by the same owner).
-	bool TryCapture(TouchOwner who);
-
-	// Release if the caller currently owns the capture (no-op otherwise).
-	void Release(TouchOwner who);
-}
-

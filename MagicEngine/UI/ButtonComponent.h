@@ -67,5 +67,6 @@ private:
 private:
 	bool pressed, released;
 	Vec2 pos;
+	int m_activePid = -1;
 
 };

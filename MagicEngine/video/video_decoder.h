@@ -82,6 +82,26 @@ namespace video
         bool open(const std::string& path);
 
         /**
+         * @brief Open a video from a VFS virtual path.
+         * Handles platform differences internally (filesystem path on
+         * Windows, file descriptor from APK assets on Android).
+         * @param vfsPath Virtual path (e.g. "videos/opening.mp4")
+         * @return true if opened successfully
+         */
+        bool openFromVFS(const std::string& vfsPath);
+
+#ifdef __ANDROID__
+        /**
+         * @brief Open a video from a file descriptor (Android APK assets).
+         * @param fd File descriptor (from AAsset_openFileDescriptor)
+         * @param offset Start offset within the fd
+         * @param length Length of the asset data
+         * @return true if opened successfully
+         */
+        bool openFd(int fd, off_t offset, off_t length);
+#endif
+
+        /**
          * @brief Close the decoder and release resources.
          */
         void close();
@@ -126,6 +146,10 @@ namespace video
         std::string m_lastError;
 
         void setError(const std::string& error);
+
+#ifdef __ANDROID__
+        bool setupDecoder();
+#endif
     };
 
 } // namespace video
@@ -169,6 +193,7 @@ namespace video
     public:
         VideoDecoder() = default;
         bool open(const std::string&) { return false; }
+        bool openFromVFS(const std::string&) { return false; }
         void close() {}
         bool isOpen() const { return false; }
         DecoderState getState() const { return DecoderState::Closed; }

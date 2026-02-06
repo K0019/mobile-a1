@@ -20,11 +20,11 @@ public:
     
     void Update() {
         m_prevKeyStates = m_keyStates;
-        
-        for (int i = 0; i < 3; ++i) {
+
+        for (int i = 0; i < MAX_POINTERS; ++i) {
             m_prevPointerStates[i] = m_pointerStates[i];
         }
-        
+
         for (auto& touch : m_touches) {
             touch.justPressed = false;
             touch.justReleased = false;
@@ -124,7 +124,7 @@ private:
     };
     
     static constexpr int MAX_TOUCHES = 10;
-    static constexpr int MAX_POINTERS = 3;
+    static constexpr int MAX_POINTERS = 5;
     
     std::array<TouchState, MAX_TOUCHES> m_touches;
     std::array<bool, MAX_KEYS_OF_DESKTOP> m_keyStates{};
@@ -154,8 +154,8 @@ private:
                 touch.active = true;
                 touch.justPressed = true;
                 
-                if (pointerId == 0) {
-                    m_pointerStates[0] = true;
+                if (pointerId < MAX_POINTERS) {
+                    m_pointerStates[pointerId] = true;
                 }
                 break;
                 
@@ -177,8 +177,8 @@ private:
                 touch.active = false;
                 touch.justReleased = true;
                 
-                if (pointerId == 0) {
-                    m_pointerStates[0] = false;
+                if (pointerId < MAX_POINTERS) {
+                    m_pointerStates[pointerId] = false;
                 }
                 break;
                 

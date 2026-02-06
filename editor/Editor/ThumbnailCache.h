@@ -80,7 +80,8 @@ namespace editor
             ::TextureHandle textureHandle;
             uint64_t imguiId = 0;
             bool ready = false;
-            bool loadAttempted = false;  // Avoid repeated failed loads
+            bool loadAttempted = false;  // Set once meta exists; prevents re-reading meta every frame
+            uint32_t retryFrame = 0;    // Next frame at which a transient failure can retry
         };
 
         // Load thumbnail using the meta file's thumbnailPath
@@ -115,5 +116,7 @@ namespace editor
 
         std::filesystem::path m_compiledAssetsDir = "Assets/compiledassets";
         bool m_initialized = false;
+        uint32_t m_frameCounter = 0;
+        static constexpr uint32_t RETRY_INTERVAL_FRAMES = 60;  // Retry transient failures ~once per second
     };
 }

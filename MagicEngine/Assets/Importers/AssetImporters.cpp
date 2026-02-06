@@ -827,12 +827,9 @@ bool AssetImporters::ImportGameWeapon(const std::string& assetRelativeFilepath)
 bool AssetImporters::ImportVideo(const std::string& assetRelativeFilepath)
 {
 #ifdef MAGIC_HAS_VIDEO
-    // Resolve the full path for the video file
-    std::string fullPath = VFS::ConvertVirtualToPhysical(assetRelativeFilepath);
-
     // Create a temporary decoder to extract video metadata
     video::VideoDecoder decoder;
-    if (!decoder.open(fullPath))
+    if (!decoder.openFromVFS(assetRelativeFilepath))
     {
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to open video file: " << assetRelativeFilepath
             << " - " << decoder.getLastError();

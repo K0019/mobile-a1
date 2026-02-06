@@ -71,6 +71,15 @@ void AssetSerialization::Serialize(Serializer& writer, const AssetFilepaths& fil
 	writer.EndArray();
 }
 
+// Check if a filepath looks like a generated thumbnail (not a real asset)
+static bool IsThumbnailFile(const std::string& filepath)
+{
+	// Thumbnail files are named <asset>_thumb.ktx2 — they are generated artifacts,
+	// not importable assets. Legacy compilations incorrectly added them to assets.json.
+	auto pos = filepath.rfind("_thumb.");
+	return pos != std::string::npos;
+}
+
 void AssetSerialization::Deserialize(Deserializer& reader, AssetFilepaths* filepaths, AssetNames* names, LoadedResourceCallbackType resourceLoadedCallback)
 {
 	reader.PushAccess("files");
@@ -78,6 +87,13 @@ void AssetSerialization::Deserialize(Deserializer& reader, AssetFilepaths* filep
 	{
 		std::string filepath{};
 		reader.DeserializeVar("filepath", &filepath);
+
+		// Skip thumbnail artifacts that were incorrectly registered as assets
+		if (IsThumbnailFile(filepath))
+		{
+			reader.PopAccess(); // Element
+			continue;
+		}
 
 		// Read extended fields (optional, for backwards compatibility)
 		std::string assetTypeStr{};

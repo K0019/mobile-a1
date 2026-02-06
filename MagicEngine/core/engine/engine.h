@@ -7,6 +7,8 @@
 #include "core_utils/clock.h"
 #include "logging/log.h"
 #include "logging/profiler.h"
+#include "Managers/AudioManager.h"
+#include "Engine/VideoPlayer.h"
 #include "resource/resource_manager.h"
 
 struct Context
@@ -249,9 +251,25 @@ void Engine<AppType>::CleanupCoreSystems()
 }
 
 template <App AppType>
-void Engine<AppType>::OnLifecycleChange([[maybe_unused]] Core::AppState oldState, [[maybe_unused]] Core::AppState newState)
+void Engine<AppType>::OnLifecycleChange(Core::AppState oldState, Core::AppState newState)
 {
   LOG_INFO("Lifecycle change: {} -> {}", static_cast<int>(oldState), static_cast<int>(newState));
+
+  if (newState == Core::AppState::Paused || newState == Core::AppState::Stopped)
+  {
+    if (auto* audio = ST<AudioManager>::Get())
+      audio->OnAppPause();
+    if (auto* video = ST<VideoManager>::Get())
+      video->PauseAllAudio();
+  }
+  else if (newState == Core::AppState::Running &&
+           (oldState == Core::AppState::Paused || oldState == Core::AppState::Stopped))
+  {
+    if (auto* audio = ST<AudioManager>::Get())
+      audio->OnAppResume();
+    if (auto* video = ST<VideoManager>::Get())
+      video->ResumeAllAudio();
+  }
 }
 
 template <App AppType>

@@ -9,6 +9,7 @@
 #ifdef __ANDROID__
 
 #include "video_decoder.h"
+#include "VFS/VFS.h"
 
 #include <media/NdkMediaExtractor.h>
 #include <media/NdkMediaCodec.h>
@@ -29,7 +30,10 @@ namespace video
         AMediaCodec* codec = nullptr;
         AMediaFormat* format = nullptr;
 
-        std::string filePath;  // Store for audio decoding
+        std::string filePath;  // Store for audio decoding (filesystem path)
+        int assetFd = -1;     // Store for audio decoding (APK fd-based)
+        off_t assetOffset = 0;
+        off_t assetLength = 0;
         int32_t videoTrackIndex = -1;
         int32_t audioTrackIndex = -1;
 
@@ -69,6 +73,9 @@ namespace video
             }
             frameBuffer.clear();
             filePath.clear();
+            assetFd = -1;
+            assetOffset = 0;
+            assetLength = 0;
             videoTrackIndex = -1;
             audioTrackIndex = -1;
             inputEOS = false;
@@ -111,6 +118,18 @@ namespace video
         return *this;
     }
 
+    bool VideoDecoder::openFromVFS(const std::string& vfsPath)
+    {
+        int fd = -1;
+        off_t offset = 0, length = 0;
+        if (!VFS::GetFileDescriptor(vfsPath, fd, offset, length))
+        {
+            setError("Failed to get file descriptor for: " + vfsPath);
+            return false;
+        }
+        return openFd(fd, offset, length);
+    }
+
     bool VideoDecoder::open(const std::string& path)
     {
         close();
@@ -125,15 +144,50 @@ namespace video
             return false;
         }
 
-        // Set data source
+        // Set data source from filesystem path
         media_status_t status = AMediaExtractor_setDataSource(m_impl->extractor, path.c_str());
         if (status != AMEDIA_OK)
         {
-            setError("Failed to open file: " + path);
+            setError("Failed to set data source: " + path);
             close();
             return false;
         }
 
+        return setupDecoder();
+    }
+
+    bool VideoDecoder::openFd(int fd, off_t offset, off_t length)
+    {
+        close();
+
+        m_impl->assetFd = fd;
+        m_impl->assetOffset = offset;
+        m_impl->assetLength = length;
+
+        // Create extractor
+        m_impl->extractor = AMediaExtractor_new();
+        if (!m_impl->extractor)
+        {
+            setError("Failed to create media extractor");
+            return false;
+        }
+
+        // Set data source from file descriptor (APK assets)
+        media_status_t status = AMediaExtractor_setDataSourceFd(
+            m_impl->extractor, fd, offset, length);
+        if (status != AMEDIA_OK)
+        {
+            setError("Failed to set data source from fd");
+            close();
+            return false;
+        }
+
+        return setupDecoder();
+    }
+
+    // Shared setup after data source is configured on the extractor
+    bool VideoDecoder::setupDecoder()
+    {
         // Find video track
         int numTracks = AMediaExtractor_getTrackCount(m_impl->extractor);
         for (int i = 0; i < numTracks; i++)
@@ -224,7 +278,7 @@ namespace video
         }
 
         // Configure decoder
-        status = AMediaCodec_configure(m_impl->codec, m_impl->format, nullptr, nullptr, 0);
+        media_status_t status = AMediaCodec_configure(m_impl->codec, m_impl->format, nullptr, nullptr, 0);
         if (status != AMEDIA_OK)
         {
             setError("Failed to configure decoder");
@@ -544,7 +598,16 @@ namespace video
             return false;
         }
 
-        media_status_t status = AMediaExtractor_setDataSource(audioExtractor, m_impl->filePath.c_str());
+        media_status_t status;
+        if (m_impl->assetFd >= 0)
+        {
+            status = AMediaExtractor_setDataSourceFd(
+                audioExtractor, m_impl->assetFd, m_impl->assetOffset, m_impl->assetLength);
+        }
+        else
+        {
+            status = AMediaExtractor_setDataSource(audioExtractor, m_impl->filePath.c_str());
+        }
         if (status != AMEDIA_OK)
         {
             LOGE("Failed to set audio extractor data source");

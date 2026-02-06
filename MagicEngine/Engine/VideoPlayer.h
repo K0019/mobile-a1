@@ -155,6 +155,10 @@ public:
     void PauseAudio(uint32_t handle);
     void ResumeAudio(uint32_t handle);
 
+    // Lifecycle: pause/resume all decoder audio channels
+    void PauseAllAudio();
+    void ResumeAllAudio();
+
     // Access decoded frame (for renderer)
     const video::VideoFrame* GetCurrentFrame(uint32_t handle) const;
 

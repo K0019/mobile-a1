@@ -146,18 +146,53 @@ ButtonInputSystem::ButtonInputSystem()
 bool ButtonInputSystem::PreRun()
 {
 #ifdef __ANDROID__
+    // Look for any unowned pointer that just went down
+    int downPid = AndroidInputBridge::FindUnownedJustDown();
+    pressed = (downPid >= 0);
 
-	pressed = AndroidInputBridge::State().justDown;
-	released = AndroidInputBridge::State().justUp;
+    // Check if any pointer just went up (for release detection)
+    released = false;
+    for (int i = 0; i < AndroidInputBridge::MAX_POINTERS; ++i) {
+        if (AndroidInputBridge::State(i).justUp) {
+            released = true;
+            break;
+        }
+    }
+
+    if (pressed) {
+        const auto& ts = AndroidInputBridge::State(downPid);
+        m_activePid = downPid;
+        // Convert to UI space
+        Vec2 rawPos{ ts.x, ts.y };
+        float uiX, uiY;
+        if (!ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY))
+            return false;
+        pos = Vec2{ uiX, uiY };
+        return true;
+    }
+    else if (released) {
+        // Find a pointer that just went up and get its position
+        for (int i = 0; i < AndroidInputBridge::MAX_POINTERS; ++i) {
+            if (AndroidInputBridge::State(i).justUp) {
+                const auto& ts = AndroidInputBridge::State(i);
+                Vec2 rawPos{ ts.x, ts.y };
+                float uiX, uiY;
+                if (ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY)) {
+                    pos = Vec2{ uiX, uiY };
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    return false;
 #else
 	pressed = ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::M_LEFT);
 	released = ST<KeyboardMouseInput>::Get()->GetIsReleased(KEY::M_LEFT);
-#endif
 
-	// DEBUG: Log input state for diagnosing game executable input issues
 	static int frameCounter = 0;
 	static bool lastPressed = false;
-	if (pressed != lastPressed || (frameCounter++ % 300 == 0)) {  // Log every 5 seconds or on change
+	if (pressed != lastPressed || (frameCounter++ % 300 == 0)) {
 		Vec2 rawPos = ST<KeyboardMouseInput>::Get()->GetMousePos();
 		printf("[ButtonInput] pressed=%d released=%d rawMousePos=(%.1f, %.1f) displaySize=(%dx%d)\n",
 			pressed, released, rawPos.x, rawPos.y, Core::Display().GetWidth(), Core::Display().GetHeight());
@@ -168,24 +203,17 @@ bool ButtonInputSystem::PreRun()
 	if (!(pressed || released))
 		return false;
 
-	// Convert window position to UI space, accounting for letterboxing
 	Vec2 rawPos = MagicInput::GetMousePos();
 	float uiX, uiY;
-	if (!ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY)) {
-		// Click is in the letterbox black bars - ignore
+	if (!ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY))
 		return false;
-	}
 	pos = Vec2{ uiX, uiY };
-
-	printf("[ButtonInput] Click detected! scaledPos=(%.1f, %.1f)\n", pos.x, pos.y);
-	fflush(stdout);
-
 	return true;
+#endif
 }
 
 void ButtonInputSystem::CheckButtonInput(ButtonComponent& buttonComp, SpriteComponent& spriteComp, RectTransformComponent& rectTransform)
 {
-	// Reset sprites on all buttons when released
 	bool wasPressed{ buttonComp.GetIsPressed() };
 	if (released) {
 		buttonComp.ResetPressState();
@@ -193,33 +221,19 @@ void ButtonInputSystem::CheckButtonInput(ButtonComponent& buttonComp, SpriteComp
 		AndroidInputBridge::Release(TouchOwner::UI);
 		#endif
 	}
-	// Test if the mouse position is within the button boundaries
-	bool hitTest = internal::TestClicked(rectTransform, spriteComp, pos);
 
-	// DEBUG: Log button hit testing
-	static int buttonCheckCount = 0;
-	if (buttonCheckCount++ < 5 || (pressed && !hitTest)) {  // Log first few or missed clicks
-		printf("[ButtonInput] CheckButtonInput: pos=(%.1f, %.1f) hitTest=%d pressed=%d wasPressed=%d\n",
-			pos.x, pos.y, hitTest, pressed, wasPressed);
-		fflush(stdout);
-	}
+	bool hitTest = internal::TestClicked(rectTransform, spriteComp, pos);
 
 	if (!hitTest)
 		return;
 
-	// If pressed on button, change sprite
 	if (pressed) {
-		printf("[ButtonInput] Button pressed!\n");
-		fflush(stdout);
 		buttonComp.OnPressed();
 		#if defined(__ANDROID__)
-		AndroidInputBridge::TryCapture(TouchOwner::UI);
+		AndroidInputBridge::TryCapture(TouchOwner::UI, m_activePid);
 		#endif
 	}
-	// If released on the button that was pressed, execute button click function
 	else if (released && wasPressed) {
-		printf("[ButtonInput] Button clicked! Triggering OnClicked()\n");
-		fflush(stdout);
 		buttonComp.OnClicked();
 	}
 }
