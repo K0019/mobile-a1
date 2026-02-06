@@ -14606,23 +14606,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/file58.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17703214927792501,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 5773694986676131867,
-                            "name": "file580"
-                        }
-                    ]
-                }
-            ]
-        },
-                {
             "filepath": "compiledassets/models/fbx/environment/bossarena 1/file17.ktx2",
             "assetType": "Texture",
             "compiledTimestamp": 17703171166346660,
@@ -14634,6 +14617,23 @@
                         {
                             "hash": 5600789086600390859,
                             "name": "file170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/file58.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703214927792501,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5773694986676131867,
+                            "name": "file580"
                         }
                     ]
                 }
