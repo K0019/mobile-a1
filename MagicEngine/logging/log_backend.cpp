@@ -11,8 +11,9 @@
 #include <atomic>
 #include <memory>
 
-bool LogBackend::initialize(const LogConfig& config)
+bool LogBackend::initialize([[maybe_unused]] const LogConfig& config)
 {
+#ifdef DEBUG
   bool expected = false;
   if (!g_initialized.compare_exchange_strong(expected, true))
   {
@@ -65,11 +66,13 @@ bool LogBackend::initialize(const LogConfig& config)
 
   g_logger->info("LogBackend initialized. Filter Level: {}", MapEngineLogLevelToString(config.logLevelFilter));
 
+#endif
   return true;
 }
 
 void LogBackend::shutdown()
 {
+#ifdef DEBUG
   bool expected = true;
   if (g_initialized.compare_exchange_strong(expected, false))
   {
@@ -81,6 +84,8 @@ void LogBackend::shutdown()
     spdlog::drop(g_loggerName);
     g_logger.reset();
   }
+  // If already shut down or never initialized, do nothing.
+#endif
 }
 
 spdlog::logger* LogBackend::getLogger()

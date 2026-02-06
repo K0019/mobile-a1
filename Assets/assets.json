@@ -151,6 +151,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/uv_set_8.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515957082498,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 959497619898635141,
+                            "name": "uv_set_80"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/bbt/lambert5.material",
             "assetType": "Material",
             "resources": [
@@ -661,6 +680,25 @@
                         {
                             "hash": 4576289441500894949,
                             "name": "player_idle_mixamoplayer_blocking_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/set_4.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515957048050,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 958282659549942655,
+                            "name": "set_40"
                         }
                     ]
                 }
@@ -1387,6 +1425,23 @@
                         {
                             "hash": 260684311670539351,
                             "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file9.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515948313764,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 929611794344055633,
+                            "name": "file90"
                         }
                     ]
                 }
@@ -2289,6 +2344,23 @@
                         {
                             "hash": 16532548052419289517,
                             "name": "mc hurt 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file11.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515893333311,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 897230077394424607,
+                            "name": "file110"
                         }
                     ]
                 }
@@ -3830,6 +3902,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/set_9.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515957116164,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 964172743339938701,
+                            "name": "set_90"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/lights/image_2.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4387,6 +4478,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/set_2.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515956992005,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 949942863853261679,
+                            "name": "set_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_03.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4477,6 +4587,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file15.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515905621158,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 906999238207214381,
+                            "name": "file150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/outdoor bleachers17541868562539041575.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4531,6 +4658,25 @@
                         {
                             "hash": 2001401433719548453,
                             "name": "kickme_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/arenawalls.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515956932023,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 938882876389462881,
+                            "name": "arenawalls0"
                         }
                     ]
                 }
@@ -4783,6 +4929,23 @@
                         {
                             "hash": 5759153946440816121,
                             "name": "katar0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file13.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515899420639,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 904657278440051493,
+                            "name": "file130"
                         }
                     ]
                 }
@@ -5772,6 +5935,23 @@
                         {
                             "hash": 2578814363255955407,
                             "name": "ui_pickup_bloodcalibur0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file3.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515924124813,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 918570498577929021,
+                            "name": "file30"
                         }
                     ]
                 }
@@ -10960,6 +11140,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file7.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515940401183,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 927584294902436683,
+                            "name": "file70"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.025.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -11594,6 +11791,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/uv10.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515957145733,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 969973766688084883,
+                            "name": "uv100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/minus icon.ktx2",
             "assetType": "Texture",
             "sourcePath": "images/menu/setting/minus icon.png",
@@ -11728,6 +11944,23 @@
                         {
                             "hash": 1996233729068998815,
                             "name": "skill_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file17.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515913503740,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 913237867183215413,
+                            "name": "file170"
                         }
                     ]
                 }
@@ -12457,6 +12690,25 @@
                         {
                             "hash": 4010155302194484447,
                             "name": "material_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/set_3.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515957017984,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 954005559317894007,
+                            "name": "set_30"
                         }
                     ]
                 }
@@ -14016,6 +14268,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file5.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515932550186,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 922473764856533827,
+                            "name": "file50"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/field/image_2.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -14185,6 +14454,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/bossarena level 1_reduced.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515871230570,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 973212927943513019,
+                            "name": "bossarena level 1_reduced0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/classroom_exported/wall_window_tex/wall_window_tex.mesh",
             "assetType": "Mesh",
             "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\glb\\classroom_exported\\wall_window_tex.glb",
@@ -14317,6 +14605,25 @@
                         {
                             "hash": 101066010564374863,
                             "name": "player_attack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/ceiling2.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515956901313,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 934231942203970393,
+                            "name": "ceiling20"
                         }
                     ]
                 }
@@ -15423,6 +15730,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file1.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703515883379806,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 892902399627498263,
+                            "name": "file10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/wall_1013.material",
             "assetType": "Material",
             "resources": [
@@ -15620,6 +15944,25 @@
                         {
                             "hash": 16532543654372776673,
                             "name": "mc hurt 50"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/set_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/bossarena level 1_reduced.fbx",
+            "sourceTimestamp": 134148249965879960,
+            "compiledTimestamp": 17703515956965508,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 944551958342275945,
+                            "name": "set_10"
                         }
                     ]
                 }
