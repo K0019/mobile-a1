@@ -1,6 +1,7 @@
 #include "Managers/AudioManager.h"
 #include <FMOD/fmod_errors.h>
 #include "Assets/AssetManager.h"
+#include <cstdint>
 #include "VFS/VFS.h"
 #include "VFS/IFileStream.h"
 #include "Engine/Audio.h"
@@ -170,7 +171,14 @@ uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType 
 
 	FMOD_ASSERT(channel->setVolume(volumeModifier));
 
-	return channelManager.RegisterChannel(channel);
+	uint32_t handle = channelManager.RegisterChannel(channel);
+	if (handle != ChannelManager::INVALID_HANDLE)
+	{
+		FMOD_ASSERT(channel->setUserData(reinterpret_cast<void*>(static_cast<uintptr_t>(handle))));
+		FMOD_ASSERT(channel->setCallback(AudioManager::ChannelCallback));
+	}
+
+	return handle;
 }
 uint32_t AudioManager::PlaySound3D(const std::string& filename, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff, float volumeModifier)
 {
@@ -215,7 +223,14 @@ uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 pos
 
 	FMOD_ASSERT(channel->setPaused(false));
 
-	return channelManager.RegisterChannel(channel);
+	uint32_t handle = channelManager.RegisterChannel(channel);
+	if (handle != ChannelManager::INVALID_HANDLE)
+	{
+		FMOD_ASSERT(channel->setUserData(reinterpret_cast<void*>(static_cast<uintptr_t>(handle))));
+		FMOD_ASSERT(channel->setCallback(AudioManager::ChannelCallback));
+	}
+
+	return handle;
 }
 
 void AudioManager::StopSound(uint32_t handle)
@@ -378,6 +393,24 @@ void AudioManager::FadeoutAudio(uint32_t handle, [[maybe_unused]] float seconds)
 	channel->addFadePoint(dspclock, 1.0f);  // Current volume
 	channel->addFadePoint(dspclock + (rate * 5), 0.0f);  // 0 volume after 5 seconds
 	channel->setDelay(0, dspclock + (rate * 5), true);  // Stop channel after fade
+}
+
+FMOD_RESULT F_CALLBACK AudioManager::ChannelCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE controlType,
+	FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* commandData1, void* commandData2)
+{
+	if (controlType != FMOD_CHANNELCONTROL_CHANNEL || callbackType != FMOD_CHANNELCONTROL_CALLBACK_END)
+		return FMOD_OK;
+
+	auto* channel = reinterpret_cast<FMOD::Channel*>(channelControl);
+	void* userData = nullptr;
+	if (channel->getUserData(&userData) != FMOD_OK || !userData)
+		return FMOD_OK;
+
+	uint32_t handle = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(userData));
+	ST<AudioManager>::Get()->channelManager.DeleteChannel(handle);
+	channel->setUserData(nullptr);
+
+	return FMOD_OK;
 }
 
 
