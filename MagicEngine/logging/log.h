@@ -131,6 +131,7 @@
  */
 #define TAGS(...) QUILL_TAGS(__VA_ARGS__)
 #pragma region LOG
+#ifdef DEBUG
 #define LOG_TRACE_L3(fmt, ...) \
     do { QUILL_LOG_TRACE_L3(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_TRACE_L2(fmt, ...) \
@@ -153,6 +154,19 @@
     do { QUILL_LOG_BACKTRACE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_DYNAMIC(log_level, fmt, ...) \
     do { QUILL_LOG_DYNAMIC(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), fmt, ##__VA_ARGS__); } while(false)
+#else
+#define LOG_TRACE_L3(fmt, ...)
+#define LOG_TRACE_L2(fmt, ...)
+#define LOG_TRACE_L1(fmt, ...)
+#define LOG_DEBUG(fmt, ...)
+#define LOG_INFO(fmt, ...)
+#define LOG_NOTICE(fmt, ...)
+#define LOG_WARNING(fmt, ...)
+#define LOG_ERROR(fmt, ...)
+#define LOG_CRITICAL(fmt, ...)
+#define LOG_BACKTRACE(fmt, ...)
+#define LOG_DYNAMIC(log_level, fmt, ...)
+#endif
 #pragma endregion //LOG
 #pragma region LOG_LIMIT
 #define LOG_TRACE_L3_LIMIT(min_interval, fmt, ...) \

@@ -15,8 +15,9 @@
 #include <atomic>
 #include <memory> // For std::unique_ptr if managing sinks manually (less common now)
 
-bool LogBackend::initialize(const LogConfig& config)
+bool LogBackend::initialize([[maybe_unused]] const LogConfig& config)
 {
+#ifdef DEBUG
   bool expected = false;
   if (!g_initialized.compare_exchange_strong(expected, true))
   {
@@ -105,11 +106,13 @@ bool LogBackend::initialize(const LogConfig& config)
     g_initialized = false;
     return false;
   }
+#endif
   return true;
 }
 
 void LogBackend::shutdown()
 {
+#ifdef DEBUG
   bool expected = true;
   // Only proceed if it was initialized
   if (g_initialized.compare_exchange_strong(expected, false))
@@ -123,6 +126,7 @@ void LogBackend::shutdown()
     g_logger = nullptr;
   }
   // If already shut down or never initialized, do nothing.
+#endif
 }
 
 // Public getter for the logger pointer
