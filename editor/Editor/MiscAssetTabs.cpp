@@ -57,12 +57,12 @@ namespace editor {
 #endif
 	}
 
-	void PrefabTab::RenderDetailPanelContent(const std::string& item)
+	void PrefabTab::RenderDetailPanelContent(const std::string& asset, [[maybe_unused]] const std::string& assetName)
 	{
 #ifdef IMGUI_ENABLED
 		if (ImGui::Button(ICON_FA_PLUS " Spawn Prefab", ImVec2(-1, 0)))
 		{
-			ecs::EntityHandle prefabEntity{ PrefabManager::LoadPrefab(item) };
+			ecs::EntityHandle prefabEntity{ PrefabManager::LoadPrefab(asset) };
 			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ prefabEntity });
 		}
 #endif
@@ -164,9 +164,9 @@ namespace editor {
 
 	void ScriptTab::RenderToolbar()
 	{
-#ifdef IMGUI_ENABLED
 		// Create new script text box & button
 		newScriptName.Draw();
+
 		{
 			gui::Disabled buttonDisable{ *newScriptName.GetBufferPtr() == '\0' };
 			if (gui::Button scriptButton{ "Create Script" })
@@ -191,7 +191,6 @@ namespace editor {
 		if (gui::Button reloadButton{ "Reload" })
 			ST<EventsQueue>::Get()->AddEventForThisFrame(Events::RequestReloadLuaScripts{});
 		gui::Separator();
-#endif
 	}
 
 }

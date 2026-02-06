@@ -19,7 +19,7 @@ namespace editor {
 		return config;
 	}
 
-	void MaterialTab::RenderContextMenuItems(size_t hash)
+	void MaterialTab::RenderContextMenuItems(const size_t& hash)
 	{
 #ifdef IMGUI_ENABLED
 		if (ImGui::MenuItem(ICON_FA_FILE_IMPORT " Edit Material"))
@@ -29,7 +29,7 @@ namespace editor {
 #endif
 	}
 
-	void MaterialTab::RenderDetailPanelContent(size_t hash, const std::string& name)
+	void MaterialTab::RenderDetailPanelContent(const size_t& hash, const std::string& name)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::Columns(2, nullptr, false);

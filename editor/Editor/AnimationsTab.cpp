@@ -18,7 +18,7 @@ namespace editor {
 		return config;
 	}
 
-	void AnimationsTab::RenderDetailPanelContent(size_t hash, const std::string& name)
+	void AnimationsTab::RenderDetailPanelContent(const size_t& hash, const std::string& name)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::Columns(2, nullptr, false);

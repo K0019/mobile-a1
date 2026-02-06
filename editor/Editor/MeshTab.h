@@ -4,12 +4,12 @@
 
 namespace editor {
 
-	class MeshTab : public GenericAssetTab<ResourceMesh>
+	class MeshTab : public GenericResourceAssetTab<ResourceMesh>
 	{
 	protected:
 		const AssetTabConfig& GetConfig() const override;
-		void RenderDetailPanelContent(size_t hash, const std::string& name) override;
-		bool ShouldShowDetailPanel(size_t hash) override;
+		void RenderDetailPanelContent(const size_t& hash, const std::string& name) override;
+		bool ShouldShowDetailPanel(const size_t& hash) override;
 
 	private:
 		static const AssetTabConfig config;

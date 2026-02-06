@@ -20,7 +20,7 @@ namespace editor {
 		return config;
 	}
 
-	void TextureTab::RenderDetailPanelContent(size_t hash, const std::string& name)
+	void TextureTab::RenderDetailPanelContent(const size_t& hash, const std::string& name)
 	{
 #ifdef IMGUI_ENABLED
 		// Texture preview

@@ -4,11 +4,11 @@
 
 namespace editor {
 
-	class AnimationsTab : public GenericAssetTab<ResourceAnimation>
+	class AnimationsTab : public GenericResourceAssetTab<ResourceAnimation>
 	{
 	protected:
 		const AssetTabConfig& GetConfig() const override;
-		void RenderDetailPanelContent(size_t hash, const std::string& name) override;
+		void RenderDetailPanelContent(const size_t& hash, const std::string& name) override;
 
 	private:
 		static const AssetTabConfig config;

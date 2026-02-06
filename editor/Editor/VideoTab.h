@@ -4,13 +4,13 @@
 
 namespace editor {
 
-    class VideoTab : public GenericAssetTab<ResourceVideo>
+    class VideoTab : public GenericResourceAssetTab<ResourceVideo>
     {
     public:
         const AssetTabConfig& GetConfig() const override;
 
     protected:
-        void RenderDetailPanelContent(size_t hash, const std::string& name) override;
+        void RenderDetailPanelContent(const size_t& hash, const std::string& name) override;
 
     private:
         static const AssetTabConfig config;

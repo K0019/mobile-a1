@@ -31,4 +31,32 @@ namespace editor {
 #endif
     }
 
+    void GenericStringAssetTab::ForEachAssetItem(const gui::TextBoxWithFilter& filter, std::function<void(const std::string&, const std::string&)> itemCallback)
+    {
+        for (const std::string& item : GetItemList())
+        {
+            std::string displayName = GetDisplayName(item);
+            if (!filter.PassFilter(displayName))
+                continue;
+
+            itemCallback(item, displayName);
+        }
+    }
+
+    bool GenericStringAssetTab::IsAssetValid([[maybe_unused]] const std::string& asset) const
+    {
+        return true;
+    }
+
+    bool GenericStringAssetTab::RenderGridItemButton(const std::string& asset, const std::string& assetName, const gui::Vec4& iconColor)
+    {
+        gui::SetStyleColor textColor{ gui::FLAG_STYLE_COLOR::TEXT, iconColor };
+        return gui::Button{ GetConfig().icon, gui::Vec2{ AssetBrowserSettings::thumbnailSize, AssetBrowserSettings::thumbnailSize } };
+    }
+
+    std::string GenericStringAssetTab::GetDisplayName(const std::string& item) const
+    {
+        return item;
+    }
+
 }

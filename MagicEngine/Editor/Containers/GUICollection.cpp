@@ -257,7 +257,13 @@ namespace gui {
 		ImGui::PushID(id);
 #endif
 	}
-	SetID::SetID([[maybe_unused]] const char* label)
+	SetID::SetID([[maybe_unused]] size_t id)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::PushID(static_cast<int>(id));
+#endif
+	}
+	SetID::SetID([[maybe_unused]] internal::TextType label)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::PushID(label);
@@ -294,9 +300,9 @@ namespace gui {
 	{
 	}
 
-	ImageButton::ImageButton([[maybe_unused]] const char* label, [[maybe_unused]] TextureID textureID, [[maybe_unused]] Vec2 size)
+	ImageButton::ImageButton([[maybe_unused]] const char* label, [[maybe_unused]] TextureID textureID, [[maybe_unused]] Vec2 size, [[maybe_unused]] Vec2 uv0, [[maybe_unused]] Vec2 uv1)
 #ifdef IMGUI_ENABLED
-		: internal::BeginEndBound_ImageButton{ label, textureID, size, Vec2{}, Vec2{1.0f,1.0f}, Vec4{}, Vec4{1.0f,1.0f,1.0f,1.0f} }
+		: internal::BeginEndBound_ImageButton{ label, textureID, size, uv0, uv1, Vec4{}, Vec4{1.0f,1.0f,1.0f,1.0f} }
 #endif
 	{
 	}
@@ -498,10 +504,10 @@ namespace gui {
 #endif
 	}
 
-	bool Selectable([[maybe_unused]] const char* label, [[maybe_unused]] bool isSelected)
+	bool Selectable([[maybe_unused]] const char* label, [[maybe_unused]] bool isSelected, [[maybe_unused]] gui::Vec2 size, [[maybe_unused]] FLAG_SELECTABLE flags)
 	{
 #ifdef IMGUI_ENABLED
-		return ImGui::Selectable(label, isSelected);
+		return ImGui::Selectable(label, isSelected, +flags, size);
 #else
 		return false;
 #endif
@@ -1047,6 +1053,13 @@ namespace gui {
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::Image(textureID, size);
+#endif
+	}
+
+	void SetDrawCursorPosX([[maybe_unused]] float x)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::SetCursorPosX(x);
 #endif
 	}
 

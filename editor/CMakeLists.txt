@@ -5,6 +5,7 @@ file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
     "*.cpp"
     "*.h"
     "*.hpp"
+    "*.ipp"
 )
 
 # Include shaders for IDE organization

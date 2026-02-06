@@ -181,6 +181,16 @@ namespace gui {
 	X(NO_PREVIEW_TOOLTIP, ImGuiDragDropFlags_AcceptNoPreviewTooltip) \
 	X(PEEK_ONLY, ImGuiDragDropFlags_AcceptPeekOnly)
 
+	//! ImGuiSelectableFlags
+#define GUICOLLECTION_FLAG_SELECTABLE \
+	X(NONE, ImGuiSelectableFlags_None) \
+	X(NO_AUTO_CLOSE_POPUPS, ImGuiSelectableFlags_NoAutoClosePopups) \
+	X(SPAN_ALL_COLUMNS, ImGuiSelectableFlags_SpanAllColumns) \
+	X(ALLOW_DOUBLE_CLICK, ImGuiSelectableFlags_AllowDoubleClick) \
+	X(DISABLED, ImGuiSelectableFlags_Disabled) \
+	X(ALLOW_OVERLAP, ImGuiSelectableFlags_AllowOverlap) \
+	X(HIGHLIGHT, ImGuiSelectableFlags_Highlight)
+
 	//! ImGuiComboFlags
 #define GUICOLLECTION_FLAG_COMBO \
 	X(NONE, ImGuiComboFlags_None) \
@@ -474,6 +484,16 @@ namespace gui {
 		GUICOLLECTION_FLAG_POPUP
 	};
 	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_POPUP)
+
+	/*****************************************************************//*!
+	\enum class FLAG_SELECTABLE
+	\brief
+		ImGuiSelectableFlags
+	*//******************************************************************/
+	enum class FLAG_SELECTABLE : int {
+		GUICOLLECTION_FLAG_SELECTABLE
+	};
+	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_SELECTABLE)
 
 	/*****************************************************************//*!
 	\enum class FLAG_COMBO
@@ -1026,7 +1046,8 @@ namespace gui {
 	public:
 		//! ImGui::PushID()
 		SetID(int id);
-		SetID(const char* label);
+		SetID(size_t id);
+		SetID(internal::TextType label);
 
 		//! ImGui::PopID()
 		~SetID();
@@ -1234,7 +1255,7 @@ namespace gui {
 #pragma region Variables
 
 	//! ImGui::Selectable
-	bool Selectable(const char* label, bool isSelected = false);
+	bool Selectable(const char* label, bool isSelected = false, gui::Vec2 size = gui::Vec2{}, FLAG_SELECTABLE flags = FLAG_SELECTABLE::NONE);
 
 	//! ImGui::Checkbox
 	bool Checkbox(const char* label, bool* v);
@@ -1393,7 +1414,7 @@ namespace gui {
 	{
 	public:
 		//! ImGui::ImageButton()
-		ImageButton(const char* label, TextureID textureID, Vec2 size);
+		ImageButton(const char* label, TextureID textureID, Vec2 size, Vec2 uv0 = Vec2{}, Vec2 uv1 = Vec2{ 1.0f, 1.0f });
 	};
 
 #pragma endregion // Button
@@ -1806,6 +1827,9 @@ namespace gui {
 #pragma endregion
 
 #pragma region Custom Drawables
+
+	//! ImGui::SetCursorPosX
+	void SetDrawCursorPosX(float x);
 
 	//! ImGui::GetWindowDrawList()->AddLine()
 	void DrawLine(Vec2 p0, Vec2 p1, const Vec4& color);
