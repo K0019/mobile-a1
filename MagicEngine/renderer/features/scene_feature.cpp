@@ -27,6 +27,23 @@
 #include <cassert>
 
 // =============================================================================
+// Pre-built identity bone buffer — avoids MSVC /O2 auto-vectorization regression
+// on glm::mat4 fill loops (see VTune: ExecuteDeferredTilePass 64% self-time).
+// memcpy from this buffer uses the compiler intrinsic path instead.
+// =============================================================================
+static const glm::mat4* getIdentityBoneBuffer() {
+  struct Buffer {
+    alignas(64) glm::mat4 bones[gfx::MAX_BONES_PER_MESH];
+    Buffer() {
+      for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i)
+        bones[i] = glm::mat4(1.0f);
+    }
+  };
+  static const Buffer buf;
+  return buf.bones;
+}
+
+// =============================================================================
 // Shader Loading Helper with VFS Include Support
 // =============================================================================
 
@@ -1348,12 +1365,8 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
               static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
 
-          // Fill all slots with identity matrices first (prevents garbage in unused slots)
-          static const glm::mat4 identity(1.0f);
-          for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) {
-            bonesDst[i] = identity;
-          }
-          // Copy actual bone matrices
+          // Fill all slots with identity, then overwrite actual bones
+          std::memcpy(bonesDst, getIdentityBoneBuffer(), gfx::BONE_MATRICES_SIZE);
           std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
 
           // Bind split vertex streams (3 buffers for skinned)
@@ -1455,10 +1468,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
               static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
 
-          static const glm::mat4 identity(1.0f);
-          for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) {
-            bonesDst[i] = identity;
-          }
+          std::memcpy(bonesDst, getIdentityBoneBuffer(), gfx::BONE_MATRICES_SIZE);
           if (draw.skinMatrices) {
             std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
           }
@@ -1704,13 +1714,8 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
         glm::mat4* boneDst = reinterpret_cast<glm::mat4*>(
             static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
 
-        // Initialize ALL 256 slots with identity first (prevents garbage in unused slots)
-        // This matches G-Buffer pass behavior and prevents 0 * NaN = NaN artifacts
-        static const glm::mat4 identity(1.0f);
-        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) {
-          boneDst[i] = identity;
-        }
-        // Copy actual bone matrices
+        // Fill all slots with identity, then overwrite actual bones
+        std::memcpy(boneDst, getIdentityBoneBuffer(), gfx::BONE_MATRICES_SIZE);
         uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
         std::memcpy(boneDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
 
@@ -3258,8 +3263,7 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
         uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
         glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
             static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
-        static const glm::mat4 identity(1.0f);
-        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) bonesDst[i] = identity;
+        std::memcpy(bonesDst, getIdentityBoneBuffer(), gfx::BONE_MATRICES_SIZE);
         std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
 
         hina_vertex_input meshInput = {};
@@ -3317,8 +3321,7 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
         uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
         glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
             static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
-        static const glm::mat4 identity(1.0f);
-        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) bonesDst[i] = identity;
+        std::memcpy(bonesDst, getIdentityBoneBuffer(), gfx::BONE_MATRICES_SIZE);
         std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
 
         hina_vertex_input meshInput = {};
@@ -3377,8 +3380,7 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
         uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
         glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
             static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
-        static const glm::mat4 identity(1.0f);
-        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) bonesDst[i] = identity;
+        std::memcpy(bonesDst, getIdentityBoneBuffer(), gfx::BONE_MATRICES_SIZE);
         std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
 
         hina_vertex_input meshInput = {};
@@ -3436,8 +3438,7 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
         uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
         glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
             static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
-        static const glm::mat4 identity(1.0f);
-        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) bonesDst[i] = identity;
+        std::memcpy(bonesDst, getIdentityBoneBuffer(), gfx::BONE_MATRICES_SIZE);
         std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
 
         hina_vertex_input meshInput = {};

@@ -35,8 +35,7 @@ target_sources(MagicEngine PRIVATE
 # uses it to conditionally include imgui.h. The #ifdef guards in our code have been removed.
 set(ENGINE_DEFINITIONS
     VK_NO_PROTOTYPES=1
-    QUILL_DISABLE_NON_PREFIXED_MACROS
-    QUILL_NO_EXCEPTIONS
+    SPDLOG_FMT_EXTERNAL
     IMGUI_ENABLE_FREETYPE
     IMGUI_ENABLED
 )
@@ -50,12 +49,17 @@ endif()
 
 target_compile_definitions(MagicEngine PUBLIC ${ENGINE_DEFINITIONS})
 
+# Strip verbose logging in Release builds - only WARNING+ survives
+target_compile_definitions(MagicEngine PUBLIC
+    $<$<CONFIG:Release>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN>
+)
+
 # ----- Dependencies -----
 # Public dependencies (exposed to consumers)
 set(ENGINE_PUBLIC_DEPS
     glm::glm-header-only
     fmt::fmt
-    quill::quill
+    spdlog::spdlog
     GPUOpen::VulkanMemoryAllocator
     imgui::imgui
     imguizmo::imguizmo
@@ -113,7 +117,7 @@ if(NOT ANDROID)
 
     list(APPEND ENGINE_PUBLIC_DEPS
         $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
-        $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
+        $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
     )
 else()
     # Android needs KTX linked differently
@@ -181,12 +185,8 @@ if(MSVC)
 endif()
 
 if(NOT ANDROID)
-    # Debug renderer for Jolt - use actual target name if it exists (submodule), else alias (vcpkg)
-    if(TARGET Jolt)
-        target_compile_definitions(Jolt INTERFACE JPH_DEBUG_RENDERER)
-    elseif(TARGET Jolt::Jolt)
-        # vcpkg provides this - can't modify alias, but vcpkg builds usually have it enabled
-    endif()
+    # Note: JPH_DEBUG_RENDERER is set PUBLIC on Jolt in root CMakeLists.txt
+    # for Debug, Release, and RelWithDebInfo. No INTERFACE override needed here.
 
     # Check if a STATIC vcpkg triplet was used
     if(VCPKG_TARGET_TRIPLET MATCHES "-static")

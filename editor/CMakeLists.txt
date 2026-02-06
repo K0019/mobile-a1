@@ -79,7 +79,7 @@ if(NOT ANDROID)
 
     add_custom_command(TARGET Editor POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "\"$<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}>$<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}>\""
+            "\"$<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}>$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}>\""
             "\"$<TARGET_FILE_DIR:Editor>\""
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
             "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""

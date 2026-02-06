@@ -28,9 +28,6 @@
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "extern/quill"]
-	path = extern/quill
-	url = https://github.com/odygrd/quill.git
 [submodule "extern/JoltPhysics"]
 	path = extern/JoltPhysics
 	url = https://github.com/jrouwe/JoltPhysics.git
@@ -79,3 +76,6 @@
 [submodule "extern/astc-encoder"]
 	path = extern/astc-encoder
 	url = https://github.com/ARM-software/astc-encoder.git
+[submodule "extern/spdlog"]
+	path = extern/spdlog
+	url = https://github.com/gabime/spdlog.git

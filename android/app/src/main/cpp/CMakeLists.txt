@@ -103,6 +103,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     VK_USE_PLATFORM_ANDROID_KHR=1
+    $<$<CONFIG:Release>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN>
 )
 
 message(STATUS "=== Android native library configured ===")

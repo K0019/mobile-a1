@@ -784,7 +784,8 @@ namespace compiler
         return meshPtrs;
     }
 
-    void SceneLoader::extractVertices(const aiMesh* aiMesh, std::vector<Vertex>& vertices, const MeshOptions& options)
+    void SceneLoader::extractVertices(const aiMesh* aiMesh, std::vector<Vertex>& vertices,
+                                       const MeshOptions& options, uint32_t uvChannel)
     {
         vertices.resize(aiMesh->mNumVertices);
         for (uint32_t i = 0; i < aiMesh->mNumVertices; ++i)
@@ -804,10 +805,10 @@ namespace compiler
                 vertex.normal = vec3(0.0f, 1.0f, 0.0f);  // Default up normal when mesh has no normals
             }
 
-            if (aiMesh->mTextureCoords[0])
+            if (aiMesh->mTextureCoords[uvChannel])
             {
-                const float u = aiMesh->mTextureCoords[0][i].x;
-                const float v = aiMesh->mTextureCoords[0][i].y;
+                const float u = aiMesh->mTextureCoords[uvChannel][i].x;
+                const float v = aiMesh->mTextureCoords[uvChannel][i].y;
                 vertex.setUV(u, options.flipUVs ? (1.0f - v) : v);
             }
             else
@@ -820,7 +821,9 @@ namespace compiler
         }
     }
 
-    ProcessedMesh SceneLoader::extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const MeshOptions& options, const ProcessedSkeleton& skeleton)
+    ProcessedMesh SceneLoader::extractMesh(const aiScene* scene, const aiMesh* aiMesh,
+                                            uint32_t meshIndex, const MeshOptions& options,
+                                            const ProcessedSkeleton& skeleton)
     {
         ProcessedMesh mesh;
 
@@ -833,7 +836,21 @@ namespace compiler
             return mesh; // Return empty mesh
         }
 
-        extractVertices(aiMesh, mesh.vertices, options);
+        // Resolve UV channel from material's base color texture
+        uint32_t uvChannel = 0;
+        if (scene && aiMesh->mMaterialIndex < scene->mNumMaterials)
+        {
+            const aiMaterial* mat = scene->mMaterials[aiMesh->mMaterialIndex];
+            unsigned int texUVIndex = 0;
+            if (mat->GetTexture(aiTextureType_BASE_COLOR, 0, nullptr, nullptr, &texUVIndex) == AI_SUCCESS
+                || mat->GetTexture(aiTextureType_DIFFUSE, 0, nullptr, nullptr, &texUVIndex) == AI_SUCCESS)
+            {
+                if (texUVIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS && aiMesh->mTextureCoords[texUVIndex])
+                    uvChannel = texUVIndex;
+            }
+        }
+
+        extractVertices(aiMesh, mesh.vertices, options, uvChannel);
 
         mesh.indices.reserve(aiMesh->mNumFaces * 3);
         for (uint32_t i = 0; i < aiMesh->mNumFaces; ++i)
@@ -985,7 +1002,7 @@ namespace compiler
             loadedScene.meshes.reserve(meshPtrs.size());
             for (uint32_t i = 0; i < meshPtrs.size(); ++i)
             {
-                loadedScene.meshes.push_back(extractMesh(meshPtrs[i], i, meshOptions, loadedScene.skeleton));
+                loadedScene.meshes.push_back(extractMesh(scene, meshPtrs[i], i, meshOptions, loadedScene.skeleton));
             }
 
             returnData.scene = std::move(loadedScene);
