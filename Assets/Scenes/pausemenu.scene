@@ -465,7 +465,7 @@
             "position": {
                 "x": 0.0,
                 "y": -0.014392614364624023,
-                "z": -180.0
+                "z": 0.5
             },
             "rotation": {
                 "x": -20.0,
@@ -631,7 +631,7 @@
                     "_active": true,
                     "scripts": [
                         {
-                            "scriptName": "mainmenu_button_start.lua"
+                            "scriptName": "menu_button_totutorial.lua"
                         }
                     ]
                 }

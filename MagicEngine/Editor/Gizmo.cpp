@@ -194,8 +194,8 @@ namespace editor {
         Vec2 uiScale = rectTransform->GetWorldScale();
 
         // Default size for UI elements (can be overridden later with component-specific sizes)
-        const float defaultWidth = 100.0f;
-        const float defaultHeight = 100.0f;
+        const float defaultWidth = 1.0f;
+        const float defaultHeight = 1.0f;
         float rectWidth = defaultWidth * uiScale.x;
         float rectHeight = defaultHeight * uiScale.y;
 

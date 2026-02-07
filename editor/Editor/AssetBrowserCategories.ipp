@@ -101,7 +101,10 @@ namespace editor {
 			gui::SetStyleColor buttonColor{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.26f, 0.59f, 0.98f, 0.6f }, isSelected };
 			bool clicked{ RenderGridItemButton(asset, assetName, iconColor) };
 			if (clicked)
+			{
 				SetSelectedAsset(asset);
+				OnItemClicked(asset);
+			}
 		}
 
 		if (gui::ItemContextMenu contextMenu{ "ctx" })
