@@ -135,10 +135,10 @@ namespace editor {
 		if (ShouldShowDetailPanel(asset))
 			RenderDetailPanelContent(asset, assetName);
 
-		if (GetConfig().payloadType)
+		if (const char* payloadType{ GetConfig().payloadType })
 		{
 			gui::Button{ ICON_FA_HAND" Drag to assign", gui::Vec2{ -1.0f, 0.0f } };
-			gui::PayloadSource{ GetConfig().payloadType, asset, (GetConfig().name + assetName).c_str(), gui::FLAG_PAYLOAD_SOURCE::ALLOW_NULL_ID};
+			gui::PayloadSource{ payloadType, asset, (GetConfig().name + assetName).c_str(), gui::FLAG_PAYLOAD_SOURCE::ALLOW_NULL_ID};
 		}
 	}
 

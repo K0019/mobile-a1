@@ -123,7 +123,7 @@ namespace editor {
 		.name = "Scripts",
 		.identifier = ICON_FA_CODE " Scripts",
 		.icon = ICON_FA_CODE,
-		.payloadType = nullptr,  // No drag-drop for scripts
+		.payloadType = "SCRIPT_HASH",
 		.iconColor = {0.4f, 0.9f, 0.4f, 1.0f},  // Green
 		.thumbnailType = ThumbnailCache::AssetType::Texture,
 		.hasThumbnails = false

@@ -301,6 +301,22 @@ namespace gui {
 		internal::PayloadTargetClass<DataType, FunctionType>::Invoke(identifier, onReceive, flags);
 	}
 
+	template<typename DataType, typename FunctionType>
+	void PayloadTargetRect(const char* payloadIdentifier, const char* displayText, Vec2 size, FunctionType onReceive, FLAG_PAYLOAD_TARGET flags)
+	{
+		Vec2 topLeft{ GetScreenCursorPos() };
+
+		DrawRectFilled(topLeft, topLeft + size, GetStyleColor(gui::FLAG_STYLE_COLOR::FRAME_BG), 5.0f);
+		InvisibleButton{ "##PayloadTarget", size };
+		PayloadTarget<DataType>(payloadIdentifier, onReceive, flags);
+
+		if (displayText)
+		{
+			Vec2 textSize{ CalcTextSize(displayText) };
+			DrawText(displayText, topLeft + (size - textSize) * 0.5f, GetStyleColor(gui::FLAG_STYLE_COLOR::TEXT));
+		}
+	}
+
 	template<typename ContType>
 		requires util::ConvertibleToCArray<ContType>&& std::is_same_v<typename ContType::value_type, const char*>
 	Combo::Combo(const char* label, const ContType& data, const char* selectedValue, int* outSelectedIndex)

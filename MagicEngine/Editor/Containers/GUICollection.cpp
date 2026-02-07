@@ -307,6 +307,13 @@ namespace gui {
 	{
 	}
 
+	InvisibleButton::InvisibleButton(const char* label, Vec2 size)
+#ifdef IMGUI_ENABLED
+		: internal::BeginEndBound_InvisibleButton{ label, size, 0 }
+#endif
+	{
+	}
+
 	Menu::Menu([[maybe_unused]] const char* label)
 #ifdef IMGUI_ENABLED
 		: internal::BeginEndBound_Menu{ label, true }
@@ -1056,6 +1063,15 @@ namespace gui {
 #endif
 	}
 
+	Vec2 GetScreenCursorPos()
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::GetCursorScreenPos();
+#else
+		return Vec2{};
+#endif
+	}
+
 	void SetDrawCursorPosX([[maybe_unused]] float x)
 	{
 #ifdef IMGUI_ENABLED
@@ -1074,6 +1090,13 @@ namespace gui {
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::GetWindowDrawList()->AddTriangleFilled(p0, p1, p2, ImGui::ColorConvertFloat4ToU32(color));
+#endif
+	}
+
+	void DrawRectFilled([[maybe_unused]] Vec2 p0, [[maybe_unused]] Vec2 p1, [[maybe_unused]] const Vec4& color, [[maybe_unused]] float cornerRoundingAmt)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::GetWindowDrawList()->AddRectFilled(p0, p1, ImGui::ColorConvertFloat4ToU32(color), cornerRoundingAmt);
 #endif
 	}
 
