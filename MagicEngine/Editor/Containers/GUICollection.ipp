@@ -306,7 +306,7 @@ namespace gui {
 	{
 		Vec2 topLeft{ GetScreenCursorPos() };
 
-		DrawRectFilled(topLeft, topLeft + size, GetStyleColor(gui::FLAG_STYLE_COLOR::FRAME_BG), 5.0f);
+		DrawRect(topLeft, topLeft + size, GetStyleColor(gui::FLAG_STYLE_COLOR::FRAME_BG), 5.0f);
 		InvisibleButton{ "##PayloadTarget", size };
 		PayloadTarget<DataType>(payloadIdentifier, onReceive, flags);
 

@@ -1093,7 +1093,7 @@ namespace gui {
 #endif
 	}
 
-	void DrawRectFilled([[maybe_unused]] Vec2 p0, [[maybe_unused]] Vec2 p1, [[maybe_unused]] const Vec4& color, [[maybe_unused]] float cornerRoundingAmt)
+	void DrawRect([[maybe_unused]] Vec2 p0, [[maybe_unused]] Vec2 p1, [[maybe_unused]] const Vec4& color, [[maybe_unused]] float cornerRoundingAmt)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::GetWindowDrawList()->AddRectFilled(p0, p1, ImGui::ColorConvertFloat4ToU32(color), cornerRoundingAmt);

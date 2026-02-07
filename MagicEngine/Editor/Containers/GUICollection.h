@@ -1873,7 +1873,7 @@ namespace gui {
 	//! ImGui::GetWindowDrawList()->AddTriangleFilled()
 	void DrawTriangle(Vec2 p0, Vec2 p1, Vec2 p2, const Vec4& color);
 	//! ImGui::GetWindowDrawList()->AddRectFilled()
-	void DrawRectFilled(Vec2 p0, Vec2 p1, const Vec4& color, float cornerRoundingAmt = 0.0f);
+	void DrawRect(Vec2 p0, Vec2 p1, const Vec4& color, float cornerRoundingAmt = 0.0f);
 	//! ImGui::GetWindowDrawList()->AddText()
 	void DrawText(const char* text, Vec2 pos, const Vec4& color);
 
