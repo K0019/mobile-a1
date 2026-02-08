@@ -972,6 +972,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/corridorfloor/uvset_4.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/corridorfloor.fbx",
+            "sourceTimestamp": 134147938616172287,
+            "compiledTimestamp": 17703203227226214,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5736363268377082479,
+                            "name": "uvset_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.003.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -2192,6 +2211,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/ceiling/ceiling.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/fbx/environment/ceiling.fbx",
+            "sourceTimestamp": 134147924956665350,
+            "compiledTimestamp": 17703192427276770,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 5682974282266085313,
+                            "name": "ceiling0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_hair (instance).material",
             "assetType": "Material",
             "resources": [
@@ -2540,6 +2578,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/file54.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703214907684073,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5768053392514013195,
+                            "name": "file540"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.064.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -2602,6 +2657,23 @@
                         {
                             "hash": 2504713301761804591,
                             "name": "boss throw 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/file38.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703214877264944,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5753117626562303983,
+                            "name": "file380"
                         }
                     ]
                 }
@@ -3432,6 +3504,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/file50.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703214888245098,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5756130288422410233,
+                            "name": "file500"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_11.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3599,6 +3688,25 @@
                         {
                             "hash": 2911319873465411665,
                             "name": "default_material10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/uvset_5.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134147950507225922,
+            "compiledTimestamp": 17703214936027660,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5804464819579443285,
+                            "name": "uvset_50"
                         }
                     ]
                 }
@@ -4075,6 +4183,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/file56.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703214917971970,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5771806025699612693,
+                            "name": "file560"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/fbx/environment/theater/theater.mesh",
             "assetType": "Mesh",
             "sourcePath": "models/fbx/environment/theater.fbx",
@@ -4265,6 +4390,25 @@
                         {
                             "hash": 725019067223537767,
                             "name": "standardsurface1_10130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/corridorfloor/uvset_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/corridorfloor.fbx",
+            "sourceTimestamp": 134147938616172287,
+            "compiledTimestamp": 17703203227194219,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5730257680308042343,
+                            "name": "uvset_10"
                         }
                     ]
                 }
@@ -5208,6 +5352,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/final fantasy_set 7_basecolor_srgb.1001.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/set 7/final fantasy_set 7_basecolor_srgb.1001.png",
+            "sourceTimestamp": 134147917817022806,
+            "compiledTimestamp": 17703198586127963,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5703751753496782153,
+                            "name": "final fantasy_set 7_basecolor_srgb.10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.001.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -5619,6 +5782,23 @@
                         {
                             "hash": 586652125620074491,
                             "name": "e0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/corridorfloor/file38.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703203207683268,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5720263119611558481,
+                            "name": "file380"
                         }
                     ]
                 }
@@ -6939,6 +7119,23 @@
                         {
                             "hash": 184839999586550855,
                             "name": "shader_nonenormal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/corridorfloor/file50.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703203219038288,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5725371450634205787,
+                            "name": "file500"
                         }
                     ]
                 }
@@ -9590,6 +9787,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/final fantasy_set 7_normal_raw.1001.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/set 7/final fantasy_set 7_normal_raw.1001.png",
+            "sourceTimestamp": 134147917804960981,
+            "compiledTimestamp": 17703198632428891,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5706143191287199581,
+                            "name": "final fantasy_set 7_normal_raw.10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_17.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -9951,6 +10167,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/uvset_7.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134147950507225922,
+            "compiledTimestamp": 17703214935900389,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5783527919163332653,
+                            "name": "uvset_70"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/t_lookaroundmobile.material",
             "assetType": "Material",
             "resources": [
@@ -10203,6 +10438,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/file52.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703214897196696,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5761654234840356865,
+                            "name": "file520"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/aji.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -10227,6 +10479,25 @@
                         {
                             "hash": 2430346209433397811,
                             "name": "n00_000_00_hairback_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/uvset_8.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134147950507225922,
+            "compiledTimestamp": 17703214935870867,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5778707660187162661,
+                            "name": "uvset_80"
                         }
                     ]
                 }
@@ -10633,6 +10904,25 @@
                         {
                             "hash": 1122938922121867553,
                             "name": "fantasy_floor.0610"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/uvset_4.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134147950507225922,
+            "compiledTimestamp": 17703214935934490,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5788062305116280887,
+                            "name": "uvset_40"
                         }
                     ]
                 }
@@ -11708,6 +11998,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/ceiling/file54.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703192438283600,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5673742782639277897,
+                            "name": "file540"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.047.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -12076,6 +12383,25 @@
                         {
                             "hash": 389680115352847513,
                             "name": "n00_000_hair_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/uvset_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134147950507225922,
+            "compiledTimestamp": 17703214935966057,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5792654965185501249,
+                            "name": "uvset_10"
                         }
                     ]
                 }
@@ -12632,6 +12958,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/uvset_9.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134147950507225922,
+            "compiledTimestamp": 17703214935993575,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5797117882882644043,
+                            "name": "uvset_90"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/pause_exit_thumb.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -12675,6 +13020,25 @@
                         {
                             "hash": 1272185530964554471,
                             "name": "fantasy_floor.0940"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/ceiling/uvset_7.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/ceiling.fbx",
+            "sourceTimestamp": 134147924956665350,
+            "compiledTimestamp": 17703192446471028,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5675717505522763601,
+                            "name": "uvset_70"
                         }
                     ]
                 }
@@ -13592,6 +13956,25 @@
                         {
                             "hash": 715987678712985681,
                             "name": "image_70"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/final fantasy_set 1_normal_raw.1001.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/set 1/final fantasy_set 1_normal_raw.1001.png",
+            "sourceTimestamp": 134147916930112715,
+            "compiledTimestamp": 17703218969807136,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5816034980438933349,
+                            "name": "final fantasy_set 1_normal_raw.10010"
                         }
                     ]
                 }
@@ -14528,6 +14911,23 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/file58.ktx2",
+            "assetType": "Texture",
+            "compiledTimestamp": 17703214927792501,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5773694986676131867,
+                            "name": "file580"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.063.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -14842,6 +15242,25 @@
                         {
                             "hash": 328151444662502519,
                             "name": "n00_010_01_onepiece_00_cloth_02 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/corridorfloor/corridorfloor.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/fbx/environment/corridorfloor.fbx",
+            "sourceTimestamp": 134147938616172287,
+            "compiledTimestamp": 17703203189598466,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 5739701385679010481,
+                            "name": "corridorfloor0"
                         }
                     ]
                 }

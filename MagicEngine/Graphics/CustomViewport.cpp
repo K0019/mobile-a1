@@ -147,11 +147,11 @@ void CustomViewport::DrawWindow()
 		ImGui::Image(static_cast<ImTextureID>(sceneTextureId), renderSize);
 	}
 
-	// Draw and update gizmo
-	bool isDraggingGizmo{ m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr)) };
-
 	// Behaviors only enabled in editor mode
 	bool isEditorMode{ ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::EDITOR };
+
+	// Draw and update gizmo (only in editor mode)
+	bool isDraggingGizmo{ isEditorMode && m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr)) };
 	if (isEditorMode)
 	{
 		// Publish camera matrices for gizmo rendering (use frameData which has the computed projection)
@@ -305,35 +305,6 @@ void CustomViewport::DrawPlayControls() {
 	float startX = (windowWidth - controlsWidth) * 0.5f;
 	float buttonY = (TOOLBAR_HEIGHT - BUTTON_HEIGHT) * 0.5f;
 
-	// Left-aligned gizmo toggle button
-	{
-		ImGui::SetCursorPos(ImVec2(4.0f, buttonY));
-
-		bool gizmoEnabled = EditorGizmo_Enabled();
-		const ImVec4 activeColor(0.165f, 0.4f, 0.55f, 1.0f);      // Blue when enabled
-		const ImVec4 inactiveColor(0.165f, 0.165f, 0.165f, 1.0f); // Dark when disabled
-		const ImVec4 hoverColor(0.25f, 0.35f, 0.45f, 1.0f);
-
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 2));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-		ImGui::PushStyleColor(ImGuiCol_Button, gizmoEnabled ? activeColor : inactiveColor);
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoverColor);
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, hoverColor);
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_Text, gizmoEnabled ? ImVec4(0.9f, 0.9f, 0.9f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-
-		if (ImGui::Button(ICON_FA_UP_DOWN_LEFT_RIGHT, ImVec2(BUTTON_WIDTH, BUTTON_HEIGHT))) {
-			EditorGizmo_SetEnabled(!gizmoEnabled);
-		}
-
-		ImGui::PopStyleColor(5);
-		ImGui::PopStyleVar(3);
-	}
-
-	// Set position for centered play controls
-	ImGui::SetCursorPos(ImVec2(startX, buttonY));
-
 	// Button styles
 	const ImVec4 activeColor(0.165f, 0.47f, 0.165f, 1.0f);      // Unity green when playing
 	const ImVec4 inactiveColor(0.165f, 0.165f, 0.165f, 1.0f);   // Dark when not playing
@@ -344,6 +315,27 @@ void CustomViewport::DrawPlayControls() {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 2));
 	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);      // Square buttons like Unity
 	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);    // Border for buttons
+
+	// Left-aligned gizmo toggle button
+	{
+		ImGui::SetCursorPos(ImVec2(4.0f, buttonY));
+
+		bool gizmoEnabled = EditorGizmo_Enabled();
+		ImGui::PushStyleColor(ImGuiCol_Button, inactiveColor);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoverColor);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, hoverColor);
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Text, gizmoEnabled ? ImVec4(0.8f, 0.8f, 0.8f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+		if (ImGui::Button(ICON_FA_UP_DOWN_LEFT_RIGHT, ImVec2(BUTTON_WIDTH, BUTTON_HEIGHT))) {
+			EditorGizmo_SetEnabled(!gizmoEnabled);
+		}
+
+		ImGui::PopStyleColor(5);
+	}
+
+	// Set position for centered play controls
+	ImGui::SetCursorPos(ImVec2(startX, buttonY));
 
 	// Play/Stop button
 	bool isPlayMode{ false };

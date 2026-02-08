@@ -366,23 +366,86 @@ namespace compiler
 
     // ===== Mesh Extraction =====
 
+    // Determine which UV set a material's textures reference on this mesh.
+    // Returns the UV set index (into fbxMesh->uv_sets) that the material's textures use.
+    // Defaults to 0 if no textures reference a named UV set.
+    static uint32_t resolveUVSetIndex(const ufbx_mesh* fbxMesh, const ufbx_material* mat)
+    {
+        if (!mat || fbxMesh->uv_sets.count <= 1)
+            return 0;
+
+        auto getUVSetName = [](const ufbx_material_map& map) -> std::string {
+            if (map.texture && map.texture->uv_set.length > 0)
+                return std::string(map.texture->uv_set.data, map.texture->uv_set.length);
+            return "";
+        };
+
+        // Prioritize baseColor/diffuse UV set
+        std::string targetName = getUVSetName(mat->pbr.base_color);
+        if (targetName.empty()) targetName = getUVSetName(mat->fbx.diffuse_color);
+
+        // If baseColor doesn't specify, check other textures
+        if (targetName.empty())
+        {
+            for (const auto& map : { mat->pbr.normal_map, mat->pbr.metalness,
+                                      mat->pbr.emission_color, mat->pbr.ambient_occlusion,
+                                      mat->fbx.normal_map, mat->fbx.bump,
+                                      mat->fbx.emission_color })
+            {
+                targetName = getUVSetName(map);
+                if (!targetName.empty()) break;
+            }
+        }
+
+        if (targetName.empty())
+            return 0;
+
+        // Find the UV set index by name
+        for (size_t i = 0; i < fbxMesh->uv_sets.count; ++i)
+        {
+            const auto& uvSet = fbxMesh->uv_sets.data[i];
+            if (uvSet.name.length > 0 &&
+                std::string(uvSet.name.data, uvSet.name.length) == targetName)
+            {
+                return static_cast<uint32_t>(i);
+            }
+        }
+
+        return 0;
+    }
+
     ProcessedMesh FbxLoader::extractMesh([[maybe_unused]] const ufbx_scene* scene, const ufbx_mesh* fbxMesh,
                                           const ufbx_node* meshNode,
                                           uint32_t meshIndex, const MeshOptions& options,
-                                          const ProcessedSkeleton& skeleton)
+                                          const ProcessedSkeleton& skeleton,
+                                          const ufbx_mesh_part* materialPart)
     {
         ProcessedMesh mesh;
         mesh.name = fbxMesh->name.length > 0
             ? std::string(fbxMesh->name.data, fbxMesh->name.length)
             : ("Mesh_" + std::to_string(meshIndex));
 
-        // Material index: use first material if available
-        if (fbxMesh->materials.count > 0 && fbxMesh->materials.data[0])
+        // Append part index for split meshes
+        if (materialPart && fbxMesh->material_parts.count > 1)
+            mesh.name += "_part" + std::to_string(materialPart->index);
+
+        // Material index: use the material_part's material when available
+        const ufbx_material* meshMaterial = nullptr;
+        if (materialPart && materialPart->index < fbxMesh->materials.count)
         {
-            mesh.materialIndex = fbxMesh->materials.data[0]->typed_id;
+            meshMaterial = fbxMesh->materials.data[materialPart->index];
+            if (meshMaterial) mesh.materialIndex = meshMaterial->typed_id;
+        }
+        else if (fbxMesh->materials.count > 0 && fbxMesh->materials.data[0])
+        {
+            meshMaterial = fbxMesh->materials.data[0];
+            mesh.materialIndex = meshMaterial->typed_id;
         }
 
         if (fbxMesh->num_vertices == 0) return mesh;
+
+        // Resolve which UV set this mesh's material textures reference
+        const uint32_t targetUVSetIndex = resolveUVSetIndex(fbxMesh, meshMaterial);
 
         const bool hasNormals = fbxMesh->vertex_normal.exists;
         const bool hasUVs = fbxMesh->vertex_uv.exists;
@@ -410,8 +473,10 @@ namespace compiler
         std::unordered_map<VertexKey, uint32_t, VertexKeyHash> vertexMap;
         vertexMap.reserve(fbxMesh->num_indices);
 
-        for (size_t faceIdx = 0; faceIdx < fbxMesh->num_faces; ++faceIdx)
+        const size_t numFaces = materialPart ? materialPart->face_indices.count : fbxMesh->num_faces;
+        for (size_t fi = 0; fi < numFaces; ++fi)
         {
+            size_t faceIdx = materialPart ? materialPart->face_indices.data[fi] : fi;
             ufbx_face face = fbxMesh->faces.data[faceIdx];
             uint32_t numTris = ufbx_triangulate_face(triFaceIndices.data(),
                 triFaceIndices.size(), fbxMesh, face);
@@ -442,10 +507,13 @@ namespace compiler
                         vertex.normal = vec3(0.0f, 1.0f, 0.0f);
                     }
 
-                    // UV
+                    // UV — use resolved UV set instead of default vertex_uv (always UV set 0)
                     if (hasUVs)
                     {
-                        ufbx_vec2 uv = ufbx_get_vertex_vec2(&fbxMesh->vertex_uv, meshIndex_local);
+                        const ufbx_vertex_vec2& uvSource = (targetUVSetIndex < fbxMesh->uv_sets.count)
+                            ? fbxMesh->uv_sets.data[targetUVSetIndex].vertex_uv
+                            : fbxMesh->vertex_uv;
+                        ufbx_vec2 uv = ufbx_get_vertex_vec2(&uvSource, meshIndex_local);
                         float u = static_cast<float>(uv.x);
                         float v = static_cast<float>(uv.y);
                         vertex.setUV(u, options.flipUVs ? (1.0f - v) : v);
@@ -672,9 +740,37 @@ namespace compiler
             extractTextureFromMap(mat->fbx.diffuse_color, texturekeys::BASE_COLOR);
 
         extractTextureFromMap(mat->pbr.metalness, texturekeys::METALLIC_ROUGHNESS);
+        // Fallback: if no metalness texture, try roughness texture
+        if (slot.texturePaths.find(texturekeys::METALLIC_ROUGHNESS) == slot.texturePaths.end())
+            extractTextureFromMap(mat->pbr.roughness, texturekeys::METALLIC_ROUGHNESS);
+
         extractTextureFromMap(mat->pbr.normal_map, texturekeys::NORMAL);
+        // Fallback: if no PBR normal map, try FBX normal_map, then FBX bump
+        if (slot.texturePaths.find(texturekeys::NORMAL) == slot.texturePaths.end())
+            extractTextureFromMap(mat->fbx.normal_map, texturekeys::NORMAL);
+        if (slot.texturePaths.find(texturekeys::NORMAL) == slot.texturePaths.end())
+            extractTextureFromMap(mat->fbx.bump, texturekeys::NORMAL);
+
+        // Normal map scale/strength
+        if (mat->pbr.normal_map.has_value)
+        {
+            float scale = static_cast<float>(mat->pbr.normal_map.value_real);
+            if (scale > 0.0f)
+                slot.normalScale = scale;
+        }
+
         extractTextureFromMap(mat->pbr.emission_color, texturekeys::EMISSIVE);
+        // Fallback: if no PBR emissive texture, try FBX emission_color
+        if (slot.texturePaths.find(texturekeys::EMISSIVE) == slot.texturePaths.end())
+            extractTextureFromMap(mat->fbx.emission_color, texturekeys::EMISSIVE);
         extractTextureFromMap(mat->pbr.ambient_occlusion, texturekeys::OCCLUSION);
+
+        // Occlusion strength
+        if (mat->pbr.ambient_occlusion.has_value)
+        {
+            slot.occlusionStrength = std::clamp(
+                static_cast<float>(mat->pbr.ambient_occlusion.value_real), 0.0f, 1.0f);
+        }
 
         // ===== PBR factors =====
 
@@ -730,6 +826,17 @@ namespace compiler
                 slot.emissiveFactor *= factor;
             }
         }
+        else if (mat->fbx.emission_color.has_value)
+        {
+            const auto& c = mat->fbx.emission_color.value_vec3;
+            slot.emissiveFactor = vec3(
+                static_cast<float>(c.x), static_cast<float>(c.y), static_cast<float>(c.z));
+            if (mat->fbx.emission_factor.has_value)
+            {
+                float factor = static_cast<float>(mat->fbx.emission_factor.value_real);
+                slot.emissiveFactor *= factor;
+            }
+        }
 
         // Opacity
         // Note: Many FBX exporters (especially Blender) set transparency_factor = 1.0 as a
@@ -765,6 +872,17 @@ namespace compiler
         if (doubleSidedProp && doubleSidedProp->value_int != 0)
         {
             slot.flags |= MaterialFlags::DOUBLE_SIDED;
+        }
+
+        // Unlit detection via FBX shading model
+        if (mat->shading_model_name.length > 0)
+        {
+            std::string shadingModel(mat->shading_model_name.data, mat->shading_model_name.length);
+            // "Constant" = no lighting response in FBX (like Maya surface shader)
+            if (shadingModel == "Constant" || shadingModel == "constant")
+            {
+                slot.flags |= MaterialFlags::UNLIT;
+            }
         }
 
         return slot;
@@ -845,13 +963,17 @@ namespace compiler
             extractSkeleton(fbxScene, loadedScene);
             extractAnimations(fbxScene, loadedScene);
 
-            // Extract meshes
+            // Extract meshes — split multi-material meshes into separate sub-meshes
+            // Track how each ufbx mesh maps to output mesh indices
+            // meshSplitMap[ufbx_typed_id] = {firstOutputIdx, count}
+            std::vector<std::pair<uint32_t, uint32_t>> meshSplitMap(fbxScene->meshes.count, {0, 0});
+
             loadedScene.meshes.reserve(fbxScene->meshes.count);
             for (size_t i = 0; i < fbxScene->meshes.count; ++i)
             {
                 const ufbx_mesh* mesh = fbxScene->meshes.data[i];
 
-                // Find the node that owns this mesh (for geometric transform)
+                // Collect all nodes referencing this mesh (Fix 7: instancing awareness)
                 const ufbx_node* meshNode = nullptr;
                 for (size_t n = 0; n < fbxScene->nodes.count; ++n)
                 {
@@ -862,10 +984,53 @@ namespace compiler
                     }
                 }
 
-                loadedScene.meshes.push_back(
-                    extractMesh(fbxScene, mesh, meshNode,
-                                static_cast<uint32_t>(i), meshOptions, loadedScene.skeleton));
+                uint32_t firstIdx = static_cast<uint32_t>(loadedScene.meshes.size());
+
+                if (mesh->material_parts.count <= 1)
+                {
+                    // Single material — extract as before (pass nullptr for materialPart)
+                    loadedScene.meshes.push_back(
+                        extractMesh(fbxScene, mesh, meshNode, static_cast<uint32_t>(i),
+                                    meshOptions, loadedScene.skeleton, nullptr));
+                }
+                else
+                {
+                    // Multi-material — one sub-mesh per material part
+                    for (size_t p = 0; p < mesh->material_parts.count; ++p)
+                    {
+                        const ufbx_mesh_part& part = mesh->material_parts.data[p];
+                        if (part.num_faces == 0) continue;  // Skip empty parts
+                        loadedScene.meshes.push_back(
+                            extractMesh(fbxScene, mesh, meshNode, static_cast<uint32_t>(i),
+                                        meshOptions, loadedScene.skeleton, &part));
+                    }
+                }
+
+                uint32_t count = static_cast<uint32_t>(loadedScene.meshes.size()) - firstIdx;
+                meshSplitMap[i] = { firstIdx, count };
             }
+
+            // Fix up node mesh indices and create sibling nodes for multi-material meshes
+            std::vector<SceneNode> siblingNodes;
+            for (auto& node : loadedScene.nodes)
+            {
+                if (node.meshIndex < 0) continue;
+                uint32_t ufbxId = static_cast<uint32_t>(node.meshIndex);
+                if (ufbxId >= meshSplitMap.size()) continue;
+
+                auto [firstIdx, count] = meshSplitMap[ufbxId];
+                if (count == 0) { node.meshIndex = -1; continue; }
+
+                node.meshIndex = static_cast<int32_t>(firstIdx);
+                for (uint32_t s = 1; s < count; ++s)
+                {
+                    SceneNode sibling = node;  // Same parent, same transform
+                    sibling.meshIndex = static_cast<int32_t>(firstIdx + s);
+                    siblingNodes.push_back(sibling);
+                }
+            }
+            loadedScene.nodes.insert(loadedScene.nodes.end(),
+                                     siblingNodes.begin(), siblingNodes.end());
 
             returnData.scene = std::move(loadedScene);
         }

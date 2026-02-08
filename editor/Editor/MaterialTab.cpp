@@ -26,6 +26,14 @@ namespace editor {
 		{
 			editor::CreateGuiWindow<editor::MaterialEditWindow>(hash);
 		}
+
+		if (ImGui::MenuItem(ICON_FA_TRASH " Delete"))
+		{
+			if (HasSelectedAsset() && GetSelectedAsset() == hash)
+				SetSelectedAsset(std::nullopt);
+			ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMaterial>().DeleteResource(hash);
+			ST<AssetManager>::Get()->SaveToFile();
+		}
 #endif
 	}
 

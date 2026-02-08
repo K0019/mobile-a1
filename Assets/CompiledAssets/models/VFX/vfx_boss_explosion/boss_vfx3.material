@@ -1,0 +1,43 @@
+{
+    "name": "Boss_VFX3",
+    "alphaMode": "Mask",
+    "alphaCutoff": 0.0,
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        1.0,
+        1.0,
+        1.0,
+        0.0
+    ],
+    "emissiveFactor": [
+        0.0,
+        0.0,
+        0.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": "compiledassets/models/vfx/vfx_boss_explosion/file3.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": ""
+        },
+        {
+            "key": "metallicRoughness",
+            "value": ""
+        },
+        {
+            "key": "normal",
+            "value": ""
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 52
+}

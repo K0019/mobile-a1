@@ -16,7 +16,7 @@ find_dependency(unofficial-spirv-reflect CONFIG REQUIRED)
 find_dependency(imgui CONFIG REQUIRED)
 find_dependency(imguizmo CONFIG REQUIRED)
 find_dependency(implot CONFIG REQUIRED)
-find_dependency(quill CONFIG REQUIRED)
+find_dependency(spdlog CONFIG REQUIRED)
 find_dependency(fmt CONFIG REQUIRED)
 find_dependency(Jolt CONFIG REQUIRED)
 find_package(recastnavigation CONFIG REQUIRED)
@@ -41,7 +41,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/MagicEngineTargets.cmake")
 if(NOT TARGET MagicEngine)
     add_library(MagicEngine INTERFACE IMPORTED)
     set_target_properties(MagicEngine PROPERTIES
-        INTERFACE_LINK_LIBRARIES "MagicEngine::ryEngine-Core;MagicEngine::ryEngine-ImGui;MagicEngine::MagicEngine-Core;quill::quill;glm::glm-header-only;fmt::fmt;GPUOpen::VulkanMemoryAllocator;Jolt::Jolt;imgui::imgui;imguizmo::imguizmo"
+        INTERFACE_LINK_LIBRARIES "MagicEngine::ryEngine-Core;MagicEngine::ryEngine-ImGui;MagicEngine::MagicEngine-Core;spdlog::spdlog;glm::glm-header-only;fmt::fmt;GPUOpen::VulkanMemoryAllocator;Jolt::Jolt;imgui::imgui;imguizmo::imguizmo"
     )
 endif()
 check_required_components(MagicEngine)

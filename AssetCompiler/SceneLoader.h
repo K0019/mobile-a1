@@ -13,7 +13,7 @@
 \brief
 Loads an fbx scene, and extracts the meshes, node hierarchy, materials, and referenced textures
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -58,8 +58,11 @@ namespace compiler
 
         // Meshes
         std::vector<const aiMesh*> collectMeshPointers(const aiScene* scene, const MeshOptions& options);
-        void extractVertices(const aiMesh* aiMesh, std::vector<Vertex>& vertices, const MeshOptions& options);
-        ProcessedMesh extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const MeshOptions& options, const ProcessedSkeleton& skeleton);
+        void extractVertices(const aiMesh* aiMesh, std::vector<Vertex>& vertices,
+                             const MeshOptions& options, uint32_t uvChannel = 0);
+        ProcessedMesh extractMesh(const aiScene* scene, const aiMesh* aiMesh,
+                                  uint32_t meshIndex, const MeshOptions& options,
+                                  const ProcessedSkeleton& skeleton);
 
         // Materials
         std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene);

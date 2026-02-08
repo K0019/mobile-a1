@@ -10,7 +10,10 @@ def assetsRoot = file('../../Assets')
 def manifestFile = file('../../Assets/asset_manifest.txt')
 def manifestGenerator = file('../../generate_android_assets_manifest.py')
 def astcScript = file('../../scripts/rebuild_android_astc_textures.py')
-def assetCompiler = file('../../Tools/AssetCompiler.exe')
+// AssetCompiler may be in Tools/ or Tools/Release/ depending on how MSVC outputs it
+def assetCompilerRelease = file('../../Tools/Release/AssetCompiler.exe')
+def assetCompilerRoot = file('../../Tools/AssetCompiler.exe')
+def assetCompiler = assetCompilerRelease.exists() ? assetCompilerRelease : assetCompilerRoot
 
 // Task 1: Generate initial manifest (needed by ASTC script to find textures)
 tasks.register('generateInitialManifest') {
@@ -193,7 +196,9 @@ android {
     }
 
     aaptOptions {
-        noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json', 'meta'
+        noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json', 'meta',
+                   'mp4', 'webm', 'mkv', 'mov', 'avi',   // Video (MediaCodec needs uncompressed for fd access)
+                   'wav', 'mp3', 'ogg', 'flac'            // Audio (reliable AAsset access)
         // Exclude logs and C# project files (keep .meta for hash resolution)
         ignoreAssetsPattern '*.log:*.csproj'
     }
@@ -201,6 +206,12 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.debug
+            minifyEnabled false  // No Java to minify
+            externalNativeBuild {
+                cmake {
+                    arguments "-DCMAKE_BUILD_TYPE=Release"
+                }
+            }
         }
         debug {
             debuggable true

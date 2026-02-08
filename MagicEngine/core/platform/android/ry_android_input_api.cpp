@@ -18,43 +18,41 @@ extern "C" {
         return g_input.HandleInputEvent(reinterpret_cast<AInputEvent*>(ainput_event));
     }
 
-    // Pump once per frame 
+    // Pump once per frame
     void ry_pump_touch_events(void) {
-        const int pid = 0;
+        static constexpr int MAX_PUMP_POINTERS = 5;
+        static float lastx[MAX_PUMP_POINTERS] = {-1.f,-1.f,-1.f,-1.f,-1.f};
+        static float lasty[MAX_PUMP_POINTERS] = {-1.f,-1.f,-1.f,-1.f,-1.f};
 
-        // DOWN
-        if (g_cb_touch && g_input.IsPointerJustPressed(pid)) {
-            auto p = g_input.GetPointerPosition(pid);
-            g_cb_touch(p.x, p.y, pid, RY_TOUCH_DOWN);
-        }
+        for (int pid = 0; pid < MAX_PUMP_POINTERS; ++pid) {
+            // DOWN
+            if (g_cb_touch && g_input.IsPointerJustPressed(pid)) {
+                auto p = g_input.GetPointerPosition(pid);
+                g_cb_touch(p.x, p.y, pid, RY_TOUCH_DOWN);
+            }
 
-        // MOVE (basic: emit when position changes while held)
-        static float lastx = -1.f, lasty = -1.f;
-        if (g_cb_touch && g_input.IsPointerDown(pid)) {
-            auto p = g_input.GetPointerPosition(pid);
-            if (p.x != lastx || p.y != lasty) {
-                g_cb_touch(p.x, p.y, pid, RY_TOUCH_MOVE);
-                lastx = p.x; lasty = p.y;
+            // MOVE
+            if (g_cb_touch && g_input.IsPointerDown(pid)) {
+                auto p = g_input.GetPointerPosition(pid);
+                if (p.x != lastx[pid] || p.y != lasty[pid]) {
+                    g_cb_touch(p.x, p.y, pid, RY_TOUCH_MOVE);
+                    lastx[pid] = p.x; lasty[pid] = p.y;
+                }
+            }
+
+            // UP
+            if (g_input.IsPointerJustReleased(pid)) {
+                auto p = g_input.GetPointerPosition(pid);
+                if (g_cb_touch) {
+                    g_cb_touch(p.x, p.y, pid, RY_TOUCH_UP);
+                    lastx[pid] = lasty[pid] = -1.f;
+                }
+                else if (g_cb_tap) {
+                    g_cb_tap(p.x, p.y, pid);
+                }
             }
         }
 
-        // UP
-        if (g_input.IsPointerJustReleased(pid)) {
-            auto p = g_input.GetPointerPosition(pid);
-
-            if (g_cb_touch) {
-                g_cb_touch(p.x, p.y, pid, RY_TOUCH_UP);
-                lastx = lasty = -1.f;
-              //  __android_log_print(ANDROID_LOG_INFO, "ry", "CB TOUCH (%.1f,%.1f)", p.x, p.y);
-            }
-            else if (g_cb_tap) {
-                //For some reason this is nvr call or use, but for now keep it as spare backup as this was how it used to be done
-                g_cb_tap(p.x, p.y, pid);
-              //  __android_log_print(ANDROID_LOG_INFO, "ry", "CB TAP (%.1f,%.1f)", p.x, p.y);
-            }
-        }
-
-        // Advance edge state at end of frame
         g_input.Update();
     }
 

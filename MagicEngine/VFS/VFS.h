@@ -33,6 +33,8 @@ public:
     // ----- Adding and removing directories ----- // 
 #ifdef __ANDROID__
     static bool MountAndroidDirectory(const std::string& virtualPath, AAssetManager* assetManager);
+    // Get a file descriptor for an uncompressed APK asset (for MediaCodec, etc.)
+    static bool GetFileDescriptor(const std::string& path, int& outFd, off_t& outOffset, off_t& outLength);
 #endif
     static bool MountDirectory(const std::string& virtualPath, const std::string& physicalPath);
     static bool MountArchive(const std::string& virtualPath, const std::string& physicalPath);

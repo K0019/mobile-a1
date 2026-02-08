@@ -4,23 +4,31 @@
 
 namespace editor {
 
-	struct SoundTab : public BaseAssetCategory
+	class SoundTab : public GenericResourceAssetTab<ResourceAudio>
 	{
-		const char* GetName() const override;
-		const char* GetIdentifier() const override;
-		void Render(const gui::TextBoxWithFilter& filter) override;
-
-		// Enable global search but disable view toggle and thumbnail slider (custom 2-column layout)
-		ToolbarCapabilities GetToolbarCapabilities() const override { return { false, false, true }; }
-
-	private:
-		void RenderSoundContextMenu(size_t hash, const std::string& name);
+	protected:
+		const AssetTabConfig& GetConfig() const override;
+		void RenderToolbar() override;
+		void RenderContextMenuItems(const size_t& hash) override;
+		void RenderDetailPanelContent(const size_t& hash, const std::string& name) override;
 
 	private:
-		uint32_t currentPreviewSound = 0; /**< Current preview sound channel */
-		size_t lastPreviewAudioHash; /**< Current preview audio information */
+		void PlayPreview(size_t hash);
+		void StopPreview();
+
+	private:
+		static const AssetTabConfig config;
+
+		uint32_t currentPreviewSound = 0;
+		size_t lastPreviewAudioHash = 0;
 		bool use3DMode = false;
 		bool queueFade = false;
+
+		float previewVolume = 1.f;
+		Vec3 pos = Vec3{ 0.f, 0.f, 0.f };
+		Vec3 vel = Vec3{ 0.f, 0.f, 0.f };
+		float animationTimer = 0.0f;
+		int tildeCount = 0;
 	};
 
 }
