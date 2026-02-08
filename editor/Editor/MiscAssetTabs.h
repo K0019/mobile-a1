@@ -4,21 +4,20 @@
 
 namespace editor {
 
-	class PrefabTab : public StringAssetTab
+	class PrefabTab : public GenericStringAssetTab
 	{
 	protected:
 		const AssetTabConfig& GetConfig() const override;
 		std::vector<std::string> GetItemList() const override;
 		void OnItemClicked(const std::string& item) override;
 		void RenderContextMenuItems(const std::string& item) override;
-		void RenderDetailPanelContent(const std::string& item) override;
-		bool HasDetailPanel() const override { return true; }
+		void RenderDetailPanelContent(const std::string& asset, const std::string& assetName) override;
 
 	private:
 		static const AssetTabConfig config;
 	};
 
-	class ShaderTab : public StringAssetTab
+	class ShaderTab : public GenericStringAssetTab
 	{
 	protected:
 		const AssetTabConfig& GetConfig() const override;
@@ -36,7 +35,7 @@ namespace editor {
 		void Render(const gui::TextBoxWithFilter& filter) override;
 	};
 
-	class ScriptTab : public StringAssetTab
+	class ScriptTab : public GenericStringAssetTab
 	{
 	public:
 		ScriptTab();

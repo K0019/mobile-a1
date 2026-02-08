@@ -101,6 +101,9 @@
                         },
                         {
                             "scriptName": "game_keylisten_pause.lua"
+                        },
+                        {
+                            "scriptName": "game_startup_timescale_set1.lua"
                         }
                     ]
                 }

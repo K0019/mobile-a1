@@ -163,11 +163,10 @@ void ScriptComponent::EditorDraw()
 	gui::Separator();
 	gui::Spacing();
 
-	if (gui::Combo combo{ "Add Script", "Add Script" })
-		for (const std::string& scriptName : ST<LuaScripting>::Get()->GetAllScriptNames())
-			if (std::find_if(scripts.begin(), scripts.end(), [&scriptName](const LuaScript& existingScript) -> bool { return scriptName == existingScript.scriptName; }) == scripts.end())
-				if (combo.Selectable(scriptName.c_str(), false))
-					scripts.emplace_back(ST<LuaScripting>::Get()->GetScript(scriptName).value());
+	gui::PayloadTargetRect<std::string>("SCRIPT_HASH", "Drag script here to add", gui::Vec2{ gui::GetAvailableContentRegion().x, 40.0f }, [this](const std::string& scriptName) -> void {
+		if (std::find_if(scripts.begin(), scripts.end(), [&scriptName](const LuaScript& existingScript) -> bool { return scriptName == existingScript.scriptName; }) == scripts.end())
+			scripts.emplace_back(ST<LuaScripting>::Get()->GetScript(scriptName).value());
+	});
 }
 
 void ScriptComponent::Deserialize(Deserializer& reader)

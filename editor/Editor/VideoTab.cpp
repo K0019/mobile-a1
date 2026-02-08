@@ -18,7 +18,7 @@ namespace editor {
         return config;
     }
 
-    void VideoTab::RenderDetailPanelContent(size_t hash, [[maybe_unused]] const std::string& name)
+    void VideoTab::RenderDetailPanelContent(const size_t& hash, [[maybe_unused]] const std::string& name)
     {
 #ifdef IMGUI_ENABLED
         ResourceVideo* video = ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceVideo>().INTERNAL_GetResource(hash, false);

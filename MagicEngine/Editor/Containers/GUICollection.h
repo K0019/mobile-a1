@@ -181,6 +181,16 @@ namespace gui {
 	X(NO_PREVIEW_TOOLTIP, ImGuiDragDropFlags_AcceptNoPreviewTooltip) \
 	X(PEEK_ONLY, ImGuiDragDropFlags_AcceptPeekOnly)
 
+	//! ImGuiSelectableFlags
+#define GUICOLLECTION_FLAG_SELECTABLE \
+	X(NONE, ImGuiSelectableFlags_None) \
+	X(NO_AUTO_CLOSE_POPUPS, ImGuiSelectableFlags_NoAutoClosePopups) \
+	X(SPAN_ALL_COLUMNS, ImGuiSelectableFlags_SpanAllColumns) \
+	X(ALLOW_DOUBLE_CLICK, ImGuiSelectableFlags_AllowDoubleClick) \
+	X(DISABLED, ImGuiSelectableFlags_Disabled) \
+	X(ALLOW_OVERLAP, ImGuiSelectableFlags_AllowOverlap) \
+	X(HIGHLIGHT, ImGuiSelectableFlags_Highlight)
+
 	//! ImGuiComboFlags
 #define GUICOLLECTION_FLAG_COMBO \
 	X(NONE, ImGuiComboFlags_None) \
@@ -476,6 +486,16 @@ namespace gui {
 	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_POPUP)
 
 	/*****************************************************************//*!
+	\enum class FLAG_SELECTABLE
+	\brief
+		ImGuiSelectableFlags
+	*//******************************************************************/
+	enum class FLAG_SELECTABLE : int {
+		GUICOLLECTION_FLAG_SELECTABLE
+	};
+	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_SELECTABLE)
+
+	/*****************************************************************//*!
 	\enum class FLAG_COMBO
 	\brief
 		ImGuiComboFlags
@@ -684,6 +704,7 @@ namespace gui {
 		using BeginEndBound_Button = BeginEndBound<ImGui::Button>;
 		using BeginEndBound_SmallButton = BeginEndBound<ImGui::SmallButton>;
 		using BeginEndBound_ImageButton = BeginEndBound<ImGui::ImageButton>;
+		using BeginEndBound_InvisibleButton = BeginEndBound<ImGui::InvisibleButton>;
 
 		using BeginEndBound_MainMenuBar = BeginEndBound<ImGui::BeginMainMenuBar, ImGui::EndMainMenuBar>;
 		using BeginEndBound_MenuBar = BeginEndBound<ImGui::BeginMenuBar, ImGui::EndMenuBar>;
@@ -712,6 +733,7 @@ namespace gui {
 		using BeginEndBound_Button = std::false_type;
 		using BeginEndBound_SmallButton = std::false_type;
 		using BeginEndBound_ImageButton = std::false_type;
+		using BeginEndBound_InvisibleButton = std::false_type;
 
 		using BeginEndBound_MainMenuBar = std::false_type;
 		using BeginEndBound_MenuBar = std::false_type;
@@ -1026,7 +1048,8 @@ namespace gui {
 	public:
 		//! ImGui::PushID()
 		SetID(int id);
-		SetID(const char* label);
+		SetID(size_t id);
+		SetID(internal::TextType label);
 
 		//! ImGui::PopID()
 		~SetID();
@@ -1234,7 +1257,7 @@ namespace gui {
 #pragma region Variables
 
 	//! ImGui::Selectable
-	bool Selectable(const char* label, bool isSelected = false);
+	bool Selectable(const char* label, bool isSelected = false, gui::Vec2 size = gui::Vec2{}, FLAG_SELECTABLE flags = FLAG_SELECTABLE::NONE);
 
 	//! ImGui::Checkbox
 	bool Checkbox(const char* label, bool* v);
@@ -1356,6 +1379,26 @@ namespace gui {
 		requires std::invocable<FunctionType, const DataType&>
 	void PayloadTarget(const char* identifier, FunctionType onReceive, FLAG_PAYLOAD_TARGET flags = FLAG_PAYLOAD_TARGET::NONE);
 
+	/*****************************************************************//*!
+	\brief
+		Custom construct that draws an invisible payload target area with
+		text in the middle.
+	\tparam DataType
+		The type of the expected payload data.
+	\tparam FunctionType
+		The type of the function to be called when receiving a payload.
+	\param payloadIdentifier
+		The identifier of the payload (to identify compatible payloads)
+	\param displayText
+		The text in the middle. If nullptr, no text is drawn.
+	\param size
+		The size of the area.
+	\param onReceive
+		The function called when receiving a payload.
+	*//******************************************************************/
+	template <typename DataType, typename FunctionType>
+	void PayloadTargetRect(const char* payloadIdentifier, const char* displayText, Vec2 size, FunctionType onReceive, FLAG_PAYLOAD_TARGET flags = FLAG_PAYLOAD_TARGET::NONE);
+
 #pragma endregion // Payload
 
 #pragma region Button
@@ -1393,7 +1436,19 @@ namespace gui {
 	{
 	public:
 		//! ImGui::ImageButton()
-		ImageButton(const char* label, TextureID textureID, Vec2 size);
+		ImageButton(const char* label, TextureID textureID, Vec2 size, Vec2 uv0 = Vec2{}, Vec2 uv1 = Vec2{ 1.0f, 1.0f });
+	};
+
+	/*****************************************************************//*!
+	\class InvisibleButton
+	\brief
+		Wraps ImGui::InvisibleButton()
+	*//******************************************************************/
+	class InvisibleButton : public internal::BeginEndBound_InvisibleButton
+	{
+	public:
+		//! ImGui::ImageButton()
+		InvisibleButton(const char* label, Vec2 size);
 	};
 
 #pragma endregion // Button
@@ -1807,10 +1862,18 @@ namespace gui {
 
 #pragma region Custom Drawables
 
+	//! ImGui::GetCursorScreenPos()
+	Vec2 GetScreenCursorPos();
+
+	//! ImGui::SetCursorPosX()
+	void SetDrawCursorPosX(float x);
+
 	//! ImGui::GetWindowDrawList()->AddLine()
 	void DrawLine(Vec2 p0, Vec2 p1, const Vec4& color);
 	//! ImGui::GetWindowDrawList()->AddTriangleFilled()
 	void DrawTriangle(Vec2 p0, Vec2 p1, Vec2 p2, const Vec4& color);
+	//! ImGui::GetWindowDrawList()->AddRectFilled()
+	void DrawRect(Vec2 p0, Vec2 p1, const Vec4& color, float cornerRoundingAmt = 0.0f);
 	//! ImGui::GetWindowDrawList()->AddText()
 	void DrawText(const char* text, Vec2 pos, const Vec4& color);
 

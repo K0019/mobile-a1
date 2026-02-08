@@ -3,7 +3,7 @@
 
 namespace editor {
 
-	class SceneTab : public StringAssetTab
+	class SceneTab : public GenericStringAssetTab
 	{
 	protected:
 		const AssetTabConfig& GetConfig() const override;

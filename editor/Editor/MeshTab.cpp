@@ -19,7 +19,7 @@ namespace editor {
 		return config;
 	}
 
-	bool MeshTab::ShouldShowDetailPanel(size_t hash)
+	bool MeshTab::ShouldShowDetailPanel(const size_t& hash)
 	{
 #ifdef IMGUI_ENABLED
 		auto& container = ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>();
@@ -39,7 +39,7 @@ namespace editor {
 #endif
 	}
 
-	void MeshTab::RenderDetailPanelContent(size_t hash, [[maybe_unused]] const std::string& name)
+	void MeshTab::RenderDetailPanelContent(const size_t& hash, [[maybe_unused]] const std::string& name)
 	{
 #ifdef IMGUI_ENABLED
 		auto& container = ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>();

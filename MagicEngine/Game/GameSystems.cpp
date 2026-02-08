@@ -25,6 +25,7 @@ All rights reserved.
 #include "Utilities/Messaging.h"
 #include "Utilities/GameTime.h"
 #include "Engine/SceneManagement.h"
+#include "Engine/SceneTransition.h"
 #include "Managers/AudioManager.h"
 
 #include "Graphics/RenderComponent.h"
@@ -91,6 +92,8 @@ void GameState_Editor::OnEnter()
 void GameState_Game::OnEnter()
 {
     GameState_Common::OnEnter();
+
+    ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, SceneTransitionSystem{});
 
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
 
