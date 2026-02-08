@@ -31,7 +31,7 @@ namespace editor {
 #endif
     }
 
-    void SoundTab::RenderContextMenuItems(size_t hash)
+    void SoundTab::RenderContextMenuItems(const size_t& hash)
     {
 #ifdef IMGUI_ENABLED
         if (ImGui::MenuItem(ICON_FA_PLAY " Play"))
@@ -40,11 +40,11 @@ namespace editor {
         }
 
         // Inherited Delete + SaveToFile
-        GenericAssetTab<ResourceAudio>::RenderContextMenuItems(hash);
+        GenericResourceAssetTab<ResourceAudio>::RenderContextMenuItems(hash);
 #endif
     }
 
-    void SoundTab::RenderDetailPanelContent(size_t hash, const std::string& name)
+    void SoundTab::RenderDetailPanelContent(const size_t& hash, const std::string& name)
     {
 #ifdef IMGUI_ENABLED
         // Play / Stop buttons

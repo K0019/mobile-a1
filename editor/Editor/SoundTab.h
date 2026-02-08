@@ -4,13 +4,13 @@
 
 namespace editor {
 
-	class SoundTab : public GenericAssetTab<ResourceAudio>
+	class SoundTab : public GenericResourceAssetTab<ResourceAudio>
 	{
 	protected:
 		const AssetTabConfig& GetConfig() const override;
 		void RenderToolbar() override;
-		void RenderContextMenuItems(size_t hash) override;
-		void RenderDetailPanelContent(size_t hash, const std::string& name) override;
+		void RenderContextMenuItems(const size_t& hash) override;
+		void RenderDetailPanelContent(const size_t& hash, const std::string& name) override;
 
 	private:
 		void PlayPreview(size_t hash);

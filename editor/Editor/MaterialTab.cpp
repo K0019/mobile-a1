@@ -29,8 +29,8 @@ namespace editor {
 
 		if (ImGui::MenuItem(ICON_FA_TRASH " Delete"))
 		{
-			if (GetSelection().has_value() && GetSelection().value() == hash)
-				GetSelection().reset();
+			if (HasSelectedAsset() && GetSelectedAsset() == hash)
+				SetSelectedAsset(std::nullopt);
 			ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMaterial>().DeleteResource(hash);
 			ST<AssetManager>::Get()->SaveToFile();
 		}
