@@ -21,11 +21,11 @@ All rights reserved.
 /******************************************************************************/
 
 #include "AndroidUIDeleter.h"
-
+#include "core/platform/platform.h"
 
 void AndroidUIDeleterComp::OnStart()
 {
-#ifndef __ANDROID__
+#ifndef PLATFORM_ANDROID
     ecs::DeleteEntity(ecs::GetEntity(this));
 #endif
 }
