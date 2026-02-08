@@ -62,7 +62,7 @@ set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Filename postfix for libraries under D
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # ----- Global Compile Definitions -----
-add_definitions("-DQUILL_DISABLE_NON_PREFIXED_MACROS")
+add_definitions("-DSPDLOG_FMT_EXTERNAL")
 add_definitions("-DVK_NO_PROTOTYPES=1")
 if(ANDROID)
     add_definitions("-DVK_USE_PLATFORM_ANDROID_KHR=1")
@@ -164,13 +164,19 @@ set(FMT_INSTALL OFF CACHE BOOL "" FORCE)
 set(FMT_DOC OFF CACHE BOOL "" FORCE)
 set(FMT_TEST OFF CACHE BOOL "" FORCE)
 add_subdirectory(extern/fmt)
+# Suppress MSVC C4127 (conditional expression is constant) from fmt/format.h.
+# This is a known false positive in fmt's digit formatting on MSVC.
+if(MSVC)
+    target_compile_options(fmt PUBLIC /wd4127)
+endif()
 
-# ----- Quill (logging) -----
-set(QUILL_FMT_EXTERNAL ON CACHE BOOL "" FORCE)
-set(QUILL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-set(QUILL_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(QUILL_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(extern/quill)
+# ----- spdlog (logging) -----
+set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "" FORCE)
+set(SPDLOG_INSTALL OFF CACHE BOOL "" FORCE)
+set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
+set(SPDLOG_BUILD_BENCH OFF CACHE BOOL "" FORCE)
+add_subdirectory(extern/spdlog)
 
 # ----- SPIRV-Cross -----
 set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
@@ -197,6 +203,21 @@ set(SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
 set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "" FORCE)
 set(SKIP_SPIRV_TOOLS_INSTALL ON CACHE BOOL "" FORCE)
 set(SPIRV_WERROR OFF CACHE BOOL "" FORCE)
+# SPIRV-Tools requires Python3 for code generation. On Windows the Microsoft Store
+# stub executables can shadow the real install, so hint CMake to the real path.
+if(NOT Python3_EXECUTABLE)
+    find_program(_REAL_PYTHON NAMES python3 python
+        PATHS
+            "$ENV{LOCALAPPDATA}/Programs/Python/Python312"
+            "$ENV{LOCALAPPDATA}/Programs/Python/Python311"
+            "$ENV{LOCALAPPDATA}/Programs/Python/Python310"
+            "C:/Python312" "C:/Python311" "C:/Python310"
+        NO_DEFAULT_PATH
+    )
+    if(_REAL_PYTHON)
+        set(Python3_EXECUTABLE "${_REAL_PYTHON}" CACHE FILEPATH "" FORCE)
+    endif()
+endif()
 add_subdirectory(extern/SPIRV-Tools)
 
 # ----- glslang -----
@@ -229,6 +250,13 @@ set(JPH_USE_MTL OFF CACHE BOOL "" FORCE)
 set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)  # Use dynamic runtime /MD
 set(CPP_RTTI_ENABLED ON CACHE BOOL "" FORCE)  # Enable RTTI for JoltDebugRenderer inheritance
 add_subdirectory(extern/JoltPhysics/Build)
+
+# Jolt's DEBUG_RENDERER_IN_DEBUG_AND_RELEASE only covers Debug/Release configs.
+# Add RelWithDebInfo so the debug renderer is compiled into Jolt for that config too,
+# avoiding linker errors when our engine code references it.
+if(TARGET Jolt)
+    target_compile_definitions(Jolt PUBLIC $<$<CONFIG:RelWithDebInfo>:JPH_DEBUG_RENDERER>)
+endif()
 
 # ----- Recast Navigation -----
 set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)

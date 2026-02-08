@@ -13,6 +13,7 @@
 
 struct ufbx_scene;
 struct ufbx_mesh;
+struct ufbx_mesh_part;
 struct ufbx_node;
 struct ufbx_material;
 struct ufbx_skin_deformer;
@@ -41,7 +42,8 @@ namespace compiler
         ProcessedMesh extractMesh(const ufbx_scene* scene, const ufbx_mesh* mesh,
                                   const ufbx_node* meshNode,  // Node for geometric transform
                                   uint32_t meshIndex, const MeshOptions& options,
-                                  const ProcessedSkeleton& skeleton);
+                                  const ProcessedSkeleton& skeleton,
+                                  const ufbx_mesh_part* materialPart = nullptr);
 
         // Materials
         ProcessedMaterialSlot extractMaterial(const ufbx_scene* scene, const ufbx_material* mat,

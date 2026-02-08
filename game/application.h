@@ -21,6 +21,8 @@ private:
 
 	// Feature handles - Game only gets essential features (no grid)
 	uint64_t sceneFeatureHandle_ = 0;
+#ifndef NDEBUG
 	uint64_t im3dFeatureHandle_ = 0;
+#endif
 	uint64_t ui2dFeatureHandle_ = 0;
 };

@@ -1,3 +1,4 @@
+#include "pch.h"  // Engine headers assume the PCH is available
 #include <android_native_app_glue.h>
 #include <android/log.h>
 #include <android/asset_manager.h>
@@ -11,19 +12,21 @@
 #include "math/utils_math.h"
 #include "VFS/VFS.h"
 #include "core/platform/android/ry_android_input_api.h"
-// Include after Engine.h to get all dependencies for GraphicsAPI.h
-#include "Utilities/Utilities.h"
-#include "ECS/ECS.h"
-#include "Utilities/Singleton.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 
 #include <stdlib.h> // For using setenv to enable vulkan validation
 
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "MagicEngine", __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngine", __VA_ARGS__)
-
-#define ASSET_LOGI(...) __android_log_print(ANDROID_LOG_INFO, "MagicEngineAssets", __VA_ARGS__)
-#define ASSET_LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngineAssets", __VA_ARGS__)
+#ifdef NDEBUG
+  #define LOGI(...) ((void)0)
+  #define ASSET_LOGI(...) ((void)0)
+  #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngine", __VA_ARGS__)
+  #define ASSET_LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngineAssets", __VA_ARGS__)
+#else
+  #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "MagicEngine", __VA_ARGS__)
+  #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngine", __VA_ARGS__)
+  #define ASSET_LOGI(...) __android_log_print(ANDROID_LOG_INFO, "MagicEngineAssets", __VA_ARGS__)
+  #define ASSET_LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngineAssets", __VA_ARGS__)
+#endif
 
 
 class AndroidApp {
@@ -105,8 +108,13 @@ static void HandleCmd(android_app* app, int32_t cmd) {
                 Core::Platform::Config config;
                 config.appName = "Game App";
                 config.enableValidation = false;
+#ifdef NDEBUG
+                config.logToConsole = false;
+                config.logLevel = None;
+#else
                 config.logToConsole = true;
                 config.logLevel = Trace;
+#endif
                 config.androidApp = app;
 
                 LOGI("Calling Platform::Initialize");

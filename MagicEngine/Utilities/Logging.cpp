@@ -62,7 +62,11 @@ namespace internal {
 
 	LoggedMessagesBuffer::LoggedMessagesBuffer()
 		: log_count{}
+#ifdef NDEBUG
+		, logLevel{ LEVEL_WARNING }
+#else
 		, logLevel{ LEVEL_DEBUG }
+#endif
 	{
 		log.reserve(MAX_LOG_ENTRIES);
 	}
@@ -135,7 +139,12 @@ namespace internal {
 		case LEVEL_ERROR: priority = ANDROID_LOG_ERROR; break;
 		case LEVEL_FATAL: priority = ANDROID_LOG_FATAL; break;
 		}
+#ifndef NDEBUG
 		__android_log_print(priority, LOG_TAG, "%s", message.data());
+#else
+		if (level >= LEVEL_WARNING)
+			__android_log_print(priority, LOG_TAG, "%s", message.data());
+#endif
 #endif
 		if (log_count < MAX_LOG_ENTRIES)
 			log_count++;
