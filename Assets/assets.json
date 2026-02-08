@@ -1,21 +1,6 @@
 {
     "files": [
         {
-            "filepath": "compiledassets/pause_settings_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 144100895119618291,
-                            "name": "pause_settings_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/textures/_01.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -70,21 +55,6 @@
                         {
                             "hash": 731494091199527651,
                             "name": "image_150"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/parry_mobile_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1937432946727147397,
-                            "name": "parry_mobile_thumb0"
                         }
                     ]
                 }
@@ -607,21 +577,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/settings pop up (bg)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 244845847786333551,
-                            "name": "settings pop up (bg)_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/items/sword/material_6.material",
             "assetType": "Material",
             "resources": [
@@ -699,21 +654,6 @@
                         {
                             "hash": 958282659549942655,
                             "name": "set_40"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/spacebar_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 665148459750287363,
-                            "name": "spacebar_thumb0"
                         }
                     ]
                 }
@@ -1290,21 +1230,6 @@
                         {
                             "hash": 2337507845630503437,
                             "name": "_210"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/health_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3206062656994119233,
-                            "name": "health_thumb0"
                         }
                     ]
                 }
@@ -2196,21 +2121,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/d_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 564014280715786681,
-                            "name": "d_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/fbx/environment/ceiling/ceiling.mesh",
             "assetType": "Mesh",
             "sourcePath": "models/fbx/environment/ceiling.fbx",
@@ -2774,21 +2684,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/dodge title_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 573236984249575049,
-                            "name": "dodge title_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.001.material",
             "assetType": "Material",
             "resources": [
@@ -2832,21 +2727,6 @@
                         {
                             "hash": 394651007363811311,
                             "name": "unitbox0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/dodge_pc_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1935540687215729345,
-                            "name": "dodge_pc_thumb0"
                         }
                     ]
                 }
@@ -2949,21 +2829,6 @@
                         {
                             "hash": 114845089070718961,
                             "name": "basic attack title0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/lookaround_mobile_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3207795487319497419,
-                            "name": "lookaround_mobile_thumb0"
                         }
                     ]
                 }
@@ -3912,21 +3777,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/w_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 672630636377306245,
-                            "name": "w_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/fbx/environment/combinedclassroom/fantasy_floor.material",
             "assetType": "Material",
             "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
@@ -4072,21 +3922,6 @@
                         {
                             "hash": 1165579082558648735,
                             "name": "fantasy_floor.0700"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/a_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 556202250600435293,
-                            "name": "a_thumb0"
                         }
                     ]
                 }
@@ -4445,21 +4280,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/delusion_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1929216296332756487,
-                            "name": "delusion_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/health icon.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4716,21 +4536,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/brightness (title)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 220048562044928939,
-                            "name": "brightness (title)_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file15.ktx2",
             "assetType": "Texture",
             "compiledTimestamp": 17703515905621158,
@@ -4787,21 +4592,6 @@
                         {
                             "hash": 16072559812771621265,
                             "name": "sword 20"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/kickme_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 2001401433719548453,
-                            "name": "kickme_thumb0"
                         }
                     ]
                 }
@@ -5788,6 +5578,21 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/boss/explosion.wav",
+            "assetType": "Audio",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 3307555572714847489,
+                            "name": "explosion0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/fbx/environment/corridorfloor/file38.ktx2",
             "assetType": "Texture",
             "compiledTimestamp": 17703203207683268,
@@ -6768,21 +6573,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/glb/floortest/final fantasy_set 1_normal_raw.1001_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3595551456998754635,
-                            "name": "final fantasy_set 1_normal_raw.1001_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/baseball_field/fence/image_0.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -7371,21 +7161,6 @@
                         {
                             "hash": 5595818194531215559,
                             "name": "file150"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/parry title_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 619209764430164245,
-                            "name": "parry title_thumb0"
                         }
                     ]
                 }
@@ -8293,21 +8068,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/minus icon_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 208501490935271495,
-                            "name": "minus icon_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.001.material",
             "assetType": "Material",
             "resources": [
@@ -8336,21 +8096,6 @@
                         {
                             "hash": 1941104216052291475,
                             "name": "parry_mobile0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/skill title_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 655893870379292675,
-                            "name": "skill title_thumb0"
                         }
                     ]
                 }
@@ -8415,21 +8160,6 @@
                         {
                             "hash": 8224691455082620087,
                             "name": "door open0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/glb/floortest/final fantasy_set 1_basecolor_srgb.1001_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3591743848231766333,
-                            "name": "final fantasy_set 1_basecolor_srgb.1001_thumb0"
                         }
                     ]
                 }
@@ -8723,21 +8453,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/pickdrop_mobile_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1973858667443749429,
-                            "name": "pickdrop_mobile_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "sounds/sfx/mc/parry- block/parry.wav",
             "assetType": "Audio",
             "resources": [
@@ -8826,21 +8541,6 @@
                         {
                             "hash": 2901243948908472373,
                             "name": "classroomcolumn0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/basic attack title_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 108195242745929703,
-                            "name": "basic attack title_thumb0"
                         }
                     ]
                 }
@@ -9332,21 +9032,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/q_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 627254891010603511,
-                            "name": "q_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/items/bookingslip/image_2.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -9599,21 +9284,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/pause_pc_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1965736575049364901,
-                            "name": "pause_pc_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/delusion decay icon.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -9653,21 +9323,6 @@
                         {
                             "hash": 2107168955015909217,
                             "name": "n00_002_03_tops_01_cloth_02__instance_0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/pause_mobile_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1955155974655274347,
-                            "name": "pause_mobile_thumb0"
                         }
                     ]
                 }
@@ -10250,21 +9905,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/pickdrop_pc_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1980120386163936287,
-                            "name": "pickdrop_pc_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "sounds/sfx/boss/throw (individual)/boss throw 3.wav",
             "assetType": "Audio",
             "resources": [
@@ -10662,21 +10302,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/skill_pc_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1992098465836933263,
-                            "name": "skill_pc_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/materials/colormap.material",
             "assetType": "Material",
             "resources": [
@@ -10756,21 +10381,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/plus icon_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 216292630329695263,
-                            "name": "plus icon_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyewhite_00_eye (instance).material",
             "assetType": "Material",
             "resources": [
@@ -10810,21 +10420,6 @@
                         {
                             "hash": 12175155038782328561,
                             "name": "bookingslip_10010"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/pause_bg_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 95606934776462005,
-                            "name": "pause_bg_thumb0"
                         }
                     ]
                 }
@@ -11175,21 +10770,6 @@
                         {
                             "hash": 2088955544901799765,
                             "name": "n00_010_01_onepiece_00_cloth_01__instance_0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/settings pop up (ref)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 731220313892781649,
-                            "name": "settings pop up (ref)_thumb0"
                         }
                     ]
                 }
@@ -11718,21 +11298,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/left click_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 598999641200006817,
-                            "name": "left click_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_idle_mixamo.anim",
             "assetType": "Animation",
             "resources": [
@@ -11962,21 +11527,6 @@
                         {
                             "hash": 616496169732810389,
                             "name": "movement title0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/heavy attack icon (mobile)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 122058984832094715,
-                            "name": "heavy attack icon (mobile)_thumb0"
                         }
                     ]
                 }
@@ -12274,21 +11824,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/move_mobile_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3218445356946145215,
-                            "name": "move_mobile_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/baseball_field/field/image_0.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -12525,21 +12060,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/volume (title)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 105928051174529687,
-                            "name": "volume (title)_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.019.material",
             "assetType": "Material",
             "sourcePath": "models/glb/level1_ground.glb",
@@ -12755,21 +12275,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/skill_mobile_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1985090178721486695,
-                            "name": "skill_mobile_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/textures/_02.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -12977,21 +12482,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/pause_exit_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 115062793029993553,
-                            "name": "pause_exit_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_eyeiris_00_eye (instance).material",
             "assetType": "Material",
             "resources": [
@@ -13133,21 +12623,6 @@
                         {
                             "hash": 772851121594002931,
                             "name": "fence77325511409881987680"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/s_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 647886127194197823,
-                            "name": "s_thumb0"
                         }
                     ]
                 }
@@ -13447,21 +12922,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/slider (fill)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 739770116310570265,
-                            "name": "slider (fill)_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_03_bottoms_01_cloth (instance).material",
             "assetType": "Material",
             "resources": [
@@ -13586,21 +13046,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/dodge icon (mobile)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 113328862507549465,
-                            "name": "dodge icon (mobile)_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_face_00_skin (instance).material",
             "assetType": "Material",
             "resources": [
@@ -13689,21 +13134,6 @@
                         {
                             "hash": 4206793062771362401,
                             "name": "unitbox0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/dodge_mobile_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3201430414506293797,
-                            "name": "dodge_mobile_thumb0"
                         }
                     ]
                 }
@@ -13926,21 +13356,6 @@
                         {
                             "hash": 2353504640303016463,
                             "name": "_270"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/parry_pc_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 1948068522702627183,
-                            "name": "parry_pc_thumb0"
                         }
                     ]
                 }
@@ -14429,21 +13844,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/how to play pop up (ref)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 304134811885560109,
-                            "name": "how to play pop up (ref)_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/materials/translucent.material",
             "assetType": "Material",
             "resources": [
@@ -14636,21 +14036,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/pause_restart_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 133261909493000027,
-                            "name": "pause_restart_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/fbx/environment/bossarena level 1_reduced/file5.ktx2",
             "assetType": "Texture",
             "compiledTimestamp": 17703515932550186,
@@ -14747,21 +14132,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/lookaround_pc_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3211389790830701307,
-                            "name": "lookaround_pc_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/materials/material_3.material",
             "assetType": "Material",
             "resources": [
@@ -14771,21 +14141,6 @@
                         {
                             "hash": 380003313458538325,
                             "name": "material_30"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/settings icon (mobile)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 142761689271497657,
-                            "name": "settings icon (mobile)_thumb0"
                         }
                     ]
                 }
@@ -15169,21 +14524,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/move_pc_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3224122135480355605,
-                            "name": "move_pc_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/d.ktx2",
             "assetType": "Texture",
             "sourcePath": "images/menu/how to play/d.png",
@@ -15354,21 +14694,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/attack_pc_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3192286875809704685,
-                            "name": "attack_pc_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/items/bbt/material_4.material",
             "assetType": "Material",
             "resources": [
@@ -15418,36 +14743,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/e_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 583819783666923507,
-                            "name": "e_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/how to play pop up (bg)_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 706128357629517489,
-                            "name": "how to play pop up (bg)_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/a.ktx2",
             "assetType": "Texture",
             "sourcePath": "images/menu/how to play/a.png",
@@ -15476,21 +14771,6 @@
                         {
                             "hash": 5142979933624197533,
                             "name": "enemy_male_animatedrange multi attack0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/attack_mobile_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3181688683229569239,
-                            "name": "attack_mobile_thumb0"
                         }
                     ]
                 }
@@ -15838,21 +15118,6 @@
                         {
                             "hash": 1303622767425925953,
                             "name": "material_1080"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/right click_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 638511691055776913,
-                            "name": "right click_thumb0"
                         }
                     ]
                 }
@@ -16401,21 +15666,6 @@
                         {
                             "hash": 102357936171006655,
                             "name": "pause_bg0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/movement title_thumb.ktx2",
-            "assetType": "Texture",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 609008495547655819,
-                            "name": "movement title_thumb0"
                         }
                     ]
                 }
