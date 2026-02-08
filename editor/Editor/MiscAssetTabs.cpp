@@ -145,7 +145,7 @@ namespace editor {
 		for (const auto& filename : VFS::ListDirectory(Filepaths::scriptsSave))
 		{
 			if (VFS::GetExtension(filename) == ".lua")
-				scripts.push_back(filename);
+				scripts.push_back(util::ToLowerStr(filename));
 		}
 		return scripts;
 	}
