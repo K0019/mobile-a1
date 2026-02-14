@@ -20,8 +20,6 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Engine/NavMeshAgent.h"
-#include "Game/EnemyCharacter.h"
-#include "Game/Character.h"
 #include "Physics/Physics.h"
 #include "Editor/Containers/GUICollection.h"
 
@@ -449,12 +447,12 @@ namespace navmesh
 			if (!compIter->GetAgent())
 				continue;
 
-			if (auto charComp{ compIter.GetEntity()->GetComp<CharacterMovementComponent>() })
+			/*if (auto charComp{ compIter.GetEntity()->GetComp<CharacterMovementComponent>() })
 			{
 				Vec3 vel{ compIter->GetAgent()->nvel[0], compIter->GetAgent()->nvel[1] + compIter->GetBaseOffset(), compIter->GetAgent()->nvel[2] };
 				charComp->SetMovementVector(Vec2{ vel.x, vel.z });
 			}
-			else
+			else*/
 			{
 				Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1] + compIter->GetBaseOffset(), compIter->GetAgent()->npos[2] };
 				compIter.GetEntity()->GetTransform().SetWorldPosition(pos);

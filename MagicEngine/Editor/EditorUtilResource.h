@@ -3,7 +3,6 @@
 #include "Assets/AssetHandle.h"
 #include "Assets/Types/AssetTypes.h"
 #include "Assets/Types/AssetTypesAudio.h"
-#include "Game/Weapon.h"
 
 namespace editor {
 
@@ -21,7 +20,6 @@ namespace editor {
 	template <> struct AssetPayloadTraits<ResourceAnimation>  { static constexpr const char* PayloadId = "ANIMATION_HASH"; };
 	template <> struct AssetPayloadTraits<ResourceAudio>      { static constexpr const char* PayloadId = "SOUND_HASH"; };
 	template <> struct AssetPayloadTraits<ResourceAudioGroup> { static constexpr const char* PayloadId = "SOUND_GROUP_HASH"; };
-	template <> struct AssetPayloadTraits<WeaponInfo>         { static constexpr const char* PayloadId = "GAME_WEAPON_HASH"; };
 
 	// ============================================================================
 	// Unified asset slot drawing - works with raw hashes (size_t)
@@ -37,7 +35,6 @@ namespace editor {
 	extern template void EditorUtil_DrawAssetSlot<ResourceAnimation>(const char* label, size_t& hash);
 	extern template void EditorUtil_DrawAssetSlot<ResourceAudio>(const char* label, size_t& hash);
 	extern template void EditorUtil_DrawAssetSlot<ResourceAudioGroup>(const char* label, size_t& hash);
-	extern template void EditorUtil_DrawAssetSlot<WeaponInfo>(const char* label, size_t& hash);
 
 	// ============================================================================
 	// AssetHandle-based drawing (existing API, now uses unified internals)
@@ -53,6 +50,5 @@ namespace editor {
 	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAnimation>& resourceHandle);
 	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAudio>& resourceHandle);
 	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAudioGroup>& resourceHandle);
-	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<WeaponInfo>& resourceHandle);
 
 }

@@ -39,7 +39,6 @@ std::unordered_map<std::string, AssetImporter::ImportFn> AssetImporter::importer
     { std::string{ ".mp3" },      &AssetImporters::ImportAudio },
     { std::string{ ".wav" },      &AssetImporters::ImportAudio },
     { std::string{ ".sg" },       &AssetImporters::ImportAudioGroup },   //load
-	{ std::string{".weapon"},    &AssetImporters::ImportGameWeapon },
     // Video formats
     { std::string{ ".mp4" },      &AssetImporters::ImportVideo },
     { std::string{ ".webm" },     &AssetImporters::ImportVideo },

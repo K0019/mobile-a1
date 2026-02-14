@@ -22,7 +22,6 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/EntityEvents.h"
 #include "Utilities/GameTime.h"
-#include "Game/Character.h"
 #include <imgui.h>
 
 #include "Graphics/CameraController.h"
@@ -877,7 +876,7 @@ namespace physics {
 
 		physicsSystem.DrawBodies(settings, &joltDebugger);
 
-		for (auto compIter{ ecs::GetCompsActiveBegin<CharacterMovementComponent>() }, endIter{ ecs::GetCompsEnd<CharacterMovementComponent>() }; compIter != endIter; ++compIter)
+		/*for (auto compIter{ ecs::GetCompsActiveBegin<CharacterMovementComponent>() }, endIter{ ecs::GetCompsEnd<CharacterMovementComponent>() }; compIter != endIter; ++compIter)
 		{
 			JPH::Vec3 joltScale{1.f, 1.f, 1.f};
 			const JPH::Shape* shapePtr{ compIter->joltCharRef->GetShape() };
@@ -889,7 +888,7 @@ namespace physics {
 			
 			JPH::RMat44 centerOfMass{ compIter->joltCharRef->GetCenterOfMassTransform() };
 			shapePtr->Draw(&joltDebugger, centerOfMass, joltScale, JPH::Color::sGreen, false, true);
-		}
+		}*/
 
 #endif
 	}

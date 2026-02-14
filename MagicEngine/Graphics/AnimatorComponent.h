@@ -1,7 +1,10 @@
 #pragma once
 #include "ECS/IRegisteredComponent.h"
 #include "ECS/IEditorComponent.h"
-#include "Engine/AnimatorStateMachine.h"
+
+namespace sm {
+	class AnimStateMachine {};
+}
 
 class AnimatorComponent : public IRegisteredComponent<AnimatorComponent>, public IEditorComponent<AnimatorComponent>
 {

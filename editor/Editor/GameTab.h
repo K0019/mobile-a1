@@ -2,7 +2,6 @@
 #include "Editor/AssetBrowserCategories.h"
 
 #define GAMETAB_SUBTAB_TYPE_ENUM \
-X(WEAPONS, ICON_FA_GUN"Weapons")
 
 namespace editor {
 
@@ -16,8 +15,6 @@ namespace editor {
 		void Render(const gui::TextBoxWithFilter& filter) final;
 
 		void RenderSidebar();
-		
-		void RenderWeapons(const gui::TextBoxWithFilter& filter);
 
 	public:
 #define X(type, name) type,

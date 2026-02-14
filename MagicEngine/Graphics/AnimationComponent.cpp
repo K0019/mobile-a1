@@ -300,10 +300,10 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
 
     ecs::EntityHandle entity = ecs::GetEntity(&comp);
     AnimatorComponent* animatorComp = entity->GetComp<AnimatorComponent>();
-    if (!(animatorComp)) {
+    /*if (!(animatorComp)) {
         entity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(new sm::IdleState())});
         animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
-    }
+    }*/
     //AnimatorComponent* animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
     if (!animatorComp)
         return;

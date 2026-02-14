@@ -24,7 +24,6 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/EntityEvents.h"
 #include "Editor/Containers/GUICollection.h"
-#include "Game/Character.h"
 
 #define X(name, str) str,
 static const char* physicsFlagNames[]{
@@ -339,7 +338,7 @@ namespace physics {
 			}
 		}
 
-		for (auto compIter{ ecs::GetCompsActiveBegin<CharacterMovementComponent>() }, endIter{ ecs::GetCompsEnd<CharacterMovementComponent>() }; compIter != endIter; ++compIter)
+		/*for (auto compIter{ ecs::GetCompsActiveBegin<CharacterMovementComponent>() }, endIter{ ecs::GetCompsEnd<CharacterMovementComponent>() }; compIter != endIter; ++compIter)
 		{
 			const JPH::Shape* shape = compIter->joltCharRef->GetShape();
 			JPH::Mat44 transform = compIter->joltCharRef->GetCenterOfMassTransform();
@@ -349,7 +348,7 @@ namespace physics {
 				result = true;
 				outEntities.push_back(compIter.GetEntity());
 			}
-		}
+		}*/
 
 		return result;
 	}

@@ -37,14 +37,6 @@ namespace Events {
 	// Consumed by: ScriptRefreshListenerSystem
 	struct LuaScriptsReloaded {};
 
-	// Consumed by: PlayerCharacter
-	struct GameActionGrabItem {};
-	struct GameActionThrowItem {};
-	struct GameActionLightAttack {};
-	struct GameActionHeavyAttack {};
-	struct GameActionDodge {};
-	struct GameActionParry {};
-
 }
 
 namespace Getters {

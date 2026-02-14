@@ -37,7 +37,6 @@ namespace editor {
 	template void EditorUtil_DrawAssetSlot<ResourceAnimation>(const char* label, size_t& hash);
 	template void EditorUtil_DrawAssetSlot<ResourceAudio>(const char* label, size_t& hash);
 	template void EditorUtil_DrawAssetSlot<ResourceAudioGroup>(const char* label, size_t& hash);
-	template void EditorUtil_DrawAssetSlot<WeaponInfo>(const char* label, size_t& hash);
 
 	// ============================================================================
 	// AssetHandle-based drawing (uses unified internals)
@@ -103,19 +102,6 @@ namespace editor {
 				resourceName = *name;
 		gui::TextBoxReadOnly(label, resourceName);
 		gui::PayloadTarget<size_t>(AssetPayloadTraits<ResourceAudioGroup>::PayloadId, [&resourceHandle](size_t hash) {
-			resourceHandle = hash;
-		});
-	}
-
-	template<>
-	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<WeaponInfo>& resourceHandle)
-	{
-		std::string resourceName{ "None" };
-		if (resourceHandle.GetResource())
-			if (const auto* name = ST<AssetManager>::Get()->Editor_GetName(resourceHandle.GetHash()))
-				resourceName = *name;
-		gui::TextBoxReadOnly(label, resourceName);
-		gui::PayloadTarget<size_t>(AssetPayloadTraits<WeaponInfo>::PayloadId, [&resourceHandle](size_t hash) {
 			resourceHandle = hash;
 		});
 	}

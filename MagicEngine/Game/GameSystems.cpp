@@ -42,20 +42,12 @@ All rights reserved.
 
 #include "Graphics/CameraSystem.h"
 #include "Tween/TweenECS.h"
-#include "Game/GameCameraController.h"
-#include "Game/GrabbableItem.h"
-#include "Game/PlayerCharacter.h"
-#include "Game/FlashComponent.h"
-#include "Game/Character.h"
 #include "Engine/Audio.h"
-#include "Game/PrefabSpawner.h"
 #include "Physics/Physics.h"
 #include "Engine/NavMesh.h"
 #include "Engine/NavMeshAgent.h"
 
 #include "Engine/BehaviorTree/BehaviourTree.h"
-#include "Engine/BehaviorTree/LeafLookForPlayer.h"
-#include "Engine/BehaviorTree/LeafMoveTowardsPlayer.h"
 #include "Engine/Platform/Android/AndroidInputManager.h"
 #include "Engine/VideoPlayer.h"
 #include "Demo.h"
@@ -101,11 +93,6 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::INPUT_1, ButtonInputSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_2, SliderSystem{});
 
-    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
-    ecs::AddSystem(ECS_LAYER::INPUT_1, PlayerMovementComponentSystem{});
-    ecs::AddSystem(ECS_LAYER::INPUT_1, FlashComponentSystem{});
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, CharacterMovementComponentSystem{});
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, GrabbableItemComponentSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_AWAKE, ScriptAwakeSystem{});
@@ -120,13 +107,11 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnchorToCameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});
 
-    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, PrefabSpawnSystem{});
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, ExampleSystem{});
 
     ecs::AddSystem(ECS_LAYER::PHYSICS, physics::PhysicsSystem{});
 
-    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_2, GrabbableItemPickupUISystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_3, BillboardSystem{});
     // Override custom viewport camera
     ecs::AddSystem(ECS_LAYER::RENDER_1, CameraCompUploadSystem{});

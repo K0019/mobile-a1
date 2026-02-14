@@ -23,29 +23,16 @@
 #include "Scripting/ScriptComponent.h"
 #include "Components/NameComponent.h"
 #include "Components/EntityReferenceHolder.h"
-#include "Game/GameCameraController.h"
-#include "Game/Character.h"
-#include "Game/PlayerCharacter.h"
-#include "Game/EnemyCharacter.h"
-#include "Game/GrabbableItem.h"
-#include "Game/Health.h"
 #include "UI/SpriteComponent.h"
 #include "UI/ButtonComponent.h"
 #include "UI/SliderComponent.h"
 #include "UI/TextComponent.h"
 #include "UI/BarComponent.h"
-#include "UI/HealthBarComponent.h"
-#include "UI/DelusionBarComponent.h"
-#include "UI/DelusionRankComponent.h"
 #include "Engine/VideoPlayer.h"
 #include "Engine/Platform/Android/AndroidUIDeleter.h"
-#include "Engine/Platform/Android/AndroidMaterialSwapper.h"
 #include "Engine/Platform/Desktop/DesktopUIDeleter.h"
-#include "Game/FlashComponent.h"
-#include "Game/MaterialSwapper.h"
 #include "UI/RectTransform.h"
 #include "3DUI/BillboardComponent.h"
-#include "Game/Delusion.h"
 #include "Graphics/BoneAttachment.h"
 #include "Graphics/AnimatorComponent.h"
 
@@ -68,12 +55,6 @@ void RegisterShit()
 	IRegisteredComponent<physics::PhysicsComp>::RegisterComponent();
 	IRegisteredComponent<NameComponent>::RegisterComponent();
 	IRegisteredComponent<EntityReferenceHolderComponent>::RegisterComponent();
-	IRegisteredComponent<GameCameraControllerComponent>::RegisterComponent();
-	IRegisteredComponent<CharacterMovementComponent>::RegisterComponent();
-	IRegisteredComponent<PlayerMovementComponent>::RegisterComponent();
-	IRegisteredComponent<GrabbableItemComponent>::RegisterComponent();
-	IRegisteredComponent<EnemyComponent>::RegisterComponent();
-	IRegisteredComponent<HealthComponent>::RegisterComponent();
 	IRegisteredComponent<ScriptComponent>::RegisterComponent();
 	IRegisteredComponent<navmesh::NavMeshSurfaceComp>::RegisterComponent();
 	IRegisteredComponent<navmesh::NavMeshAgentComp>::RegisterComponent();
@@ -84,24 +65,16 @@ void RegisterShit()
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 	IRegisteredComponent<BarComponent>::RegisterComponent();
 	IRegisteredComponent<VideoPlayerComponent>::RegisterComponent();
-	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
-	IRegisteredComponent<DelusionBarComponent>::RegisterComponent();
-	IRegisteredComponent<DelusionRankComponent>::RegisterComponent();
 	IRegisteredComponent<AndroidUIDeleterComp>::RegisterComponent();
 	IRegisteredComponent<DesktopUIDeleterComp>::RegisterComponent();
-	IRegisteredComponent<FlashComponent>::RegisterComponent();
-	IRegisteredComponent<MaterialSwapperComponent>::RegisterComponent();
 	IRegisteredComponent<RectTransformComponent>::RegisterComponent();
 	IRegisteredComponent<BillboardComponent>::RegisterComponent();
-	IRegisteredComponent<DelusionComponent>::RegisterComponent();
 	IRegisteredComponent<BoneAttachment>::RegisterComponent();
 	IRegisteredComponent<AnimatorComponent>::RegisterComponent();
 }
 
 void PreloadShit()
 {
-	// Need WeaponInfo because characters will read from it immediately on first frame
-	ST<AssetManager>::Get()->GetContainer<WeaponInfo>().RequestLoadAll();
 	// Sounds don't play on first try
 	ST<AssetManager>::Get()->GetContainer<ResourceAudio>().RequestLoadAll();
 	ST<AssetManager>::Get()->GetContainer<ResourceAudioGroup>().RequestLoadAll();
