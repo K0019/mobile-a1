@@ -179,12 +179,12 @@ namespace physics {
 			auto scriptComp1{ entity1->GetComp<ScriptComponent>() };
 			auto colliderComp1{ entity1->GetComp<BoxColliderComp>() };
 			if (scriptComp1 && colliderComp1 && colliderComp1->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
-				scriptComp1->CallScriptFunction(ContactFuncName(colliderComp1->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER), contactBodyPair.second), entity2);
+				scriptComp1->CallScriptFunction(ContactFuncName(colliderComp1->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER), contactBodyPair.second), entity1, entity2);
 
 			auto scriptComp2{ ecs::GetEntity(entityHash2)->GetComp<ScriptComponent>() };
 			auto colliderComp2{ ecs::GetEntity(entityHash2)->GetComp<BoxColliderComp>() };
 			if (scriptComp2 && colliderComp2 && colliderComp2->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
-				scriptComp2->CallScriptFunction(ContactFuncName(colliderComp2->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER), contactBodyPair.second), entity1);
+				scriptComp2->CallScriptFunction(ContactFuncName(colliderComp2->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER), contactBodyPair.second), entity2, entity1);
 		}
 	}
 

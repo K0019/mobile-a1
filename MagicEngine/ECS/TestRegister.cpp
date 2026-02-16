@@ -35,6 +35,8 @@
 #include "3DUI/BillboardComponent.h"
 #include "Graphics/BoneAttachment.h"
 #include "Graphics/AnimatorComponent.h"
+#include "Game/Pokeball.h"
+#include "Game/Target.h"
 
 void RegisterShit()
 {
@@ -71,6 +73,8 @@ void RegisterShit()
 	IRegisteredComponent<BillboardComponent>::RegisterComponent();
 	IRegisteredComponent<BoneAttachment>::RegisterComponent();
 	IRegisteredComponent<AnimatorComponent>::RegisterComponent();
+	IRegisteredComponent<PokeballComponent>::RegisterComponent();
+	IRegisteredComponent<PositionRandomizerComponent>::RegisterComponent();
 }
 
 void PreloadShit()

@@ -6,6 +6,7 @@
 #include "core/platform/platform.h"
 
 #include "Physics/Physics.h"
+#include "Game/Target.h"
 
 PokeballComponent::PokeballComponent()
     : isThrown{}
@@ -25,6 +26,16 @@ void PokeballComponent::SetThrown()
 float PokeballComponent::GetTimeInAir() const
 {
     return GameTime::TimeSinceStart() - launchTime;
+}
+
+void PokeballComponent::OnTargetHit(ecs::EntityHandle targetEntity)
+{
+    CONSOLE_LOG(LEVEL_INFO) << "TARGET HIT!";
+    ecs::DeleteEntity(targetEntity);
+
+    // Let respawn system handle our ball respawning
+    launchTime = -999.0f;
+    ecs::GetEntityTransform(this).SetWorldPosition(Vec3{ 0.0f, -999.0f, 0.0f });
 }
 
 PokeballThrowSystem::PokeballThrowSystem()
@@ -138,4 +149,8 @@ void PokeballRespawnSystem::UpdateComp(PokeballComponent& comp)
 
     ecs::DeleteEntity(ecs::GetEntity(&comp));
     PrefabManager::LoadPrefab("pokeball");
+
+    // If a target doesn't exist, load one
+    if (ecs::GetCompsActiveBegin<PositionRandomizerComponent>() == ecs::GetCompsEnd<PositionRandomizerComponent>())
+        PrefabManager::LoadPrefab("target");
 }

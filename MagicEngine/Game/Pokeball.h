@@ -12,6 +12,8 @@ public:
 	void SetThrown();
 	float GetTimeInAir() const;
 
+	void OnTargetHit(ecs::EntityHandle targetEntity);
+
 private:
 	bool isThrown;
 	float launchTime;
@@ -41,4 +43,10 @@ public:
 private:
 	void UpdateComp(PokeballComponent& comp);
 
+};
+
+class PokeballTargetHitSystem : public ecs::System<PokeballTargetHitSystem>
+{
+public:
+	bool PreRun() override;
 };

@@ -46,6 +46,8 @@ All rights reserved.
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
 
+#include "Game/Pokeball.h"
+
 #include "core/platform/platform.h"
 #include "Engine/Graphics Interface/GraphicsWindow.h"
 // Thanks microsoft
@@ -210,6 +212,13 @@ SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(RenderComponent)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 
+// PokeballComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(PokeballComponent)
+void OnTargetHit(ecs::EntityHandle targetEntity)
+{
+	GetHandle()->OnTargetHit(targetEntity);
+}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 
 //=========================================== END REGISTERING COMPONENTS ================================================================================
@@ -398,6 +407,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(SliderComponent)
 		SCRIPT_REGISTER_COMP_GETTER(ScriptComponent)
 		SCRIPT_REGISTER_COMP_GETTER(RenderComponent)
+		SCRIPT_REGISTER_COMP_GETTER(PokeballComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -526,6 +536,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_END()
 		// RenderComponent
 		SCRIPT_REGISTER_COMP_BEGIN(RenderComponent)
+		SCRIPT_REGISTER_COMP_END()
+
+		// PokeballComponent
+		SCRIPT_REGISTER_COMP_BEGIN(PokeballComponent)
+			.addFunction("OnTargetHit", &LuaWrapperComp_PokeballComponent::OnTargetHit)
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----
