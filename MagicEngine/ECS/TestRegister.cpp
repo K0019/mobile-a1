@@ -37,6 +37,7 @@
 #include "Graphics/AnimatorComponent.h"
 #include "Game/Pokeball.h"
 #include "Game/Target.h"
+#include "Game/NiceThrow.h"
 
 void RegisterShit()
 {
@@ -75,6 +76,7 @@ void RegisterShit()
 	IRegisteredComponent<AnimatorComponent>::RegisterComponent();
 	IRegisteredComponent<PokeballComponent>::RegisterComponent();
 	IRegisteredComponent<PositionRandomizerComponent>::RegisterComponent();
+	IRegisteredComponent<NiceThrowComponent>::RegisterComponent();
 }
 
 void PreloadShit()

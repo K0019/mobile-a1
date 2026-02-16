@@ -3,6 +3,8 @@
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Engine/Input.h"
 #include "Engine/PrefabManager.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 #include "core/platform/platform.h"
 
 #include "Physics/Physics.h"
@@ -32,6 +34,7 @@ void PokeballComponent::OnTargetHit(ecs::EntityHandle targetEntity)
 {
     CONSOLE_LOG(LEVEL_INFO) << "TARGET HIT!";
     ecs::DeleteEntity(targetEntity);
+    ST<EventsQueue>::Get()->AddEventForNextFrame(Events::Game_NiceThrow{});
 
     // Let respawn system handle our ball respawning
     launchTime = -999.0f;

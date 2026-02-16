@@ -37,6 +37,9 @@ namespace Events {
 	// Consumed by: ScriptRefreshListenerSystem
 	struct LuaScriptsReloaded {};
 
+	// Consumed by: NiceThrow
+	struct Game_NiceThrow {};
+
 }
 
 namespace Getters {

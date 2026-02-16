@@ -53,6 +53,7 @@ All rights reserved.
 #include "Demo.h"
 
 #include "Game/Pokeball.h"
+#include "Game/NiceThrow.h"
 
 void GameStateBase::OnExit()
 {
@@ -121,6 +122,7 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, PokeballThrowSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, PokeballRespawnSystem{});
+    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, NiceThrowSystem{});
     
 }
 

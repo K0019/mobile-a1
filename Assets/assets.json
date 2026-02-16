@@ -14,6 +14,25 @@
                     ]
                 }
             ]
+        },
+        {
+            "filepath": "compiledassets/nicethrow.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/nicethrow.png",
+            "sourceTimestamp": 134156920248694076,
+            "compiledTimestamp": 17712190139411218,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 86366638791012665,
+                            "name": "nicethrow0"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
