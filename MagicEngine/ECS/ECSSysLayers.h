@@ -56,6 +56,7 @@ enum class ECS_LAYER : int
 
 	//! The pre-physics layer, for systems that run before physics.
 	PRE_PHYSICS_0,
+	PRE_PHYSICS_1,
 
 	CUTOFF_PRE_PHYSICS, // --- UNUSED
 

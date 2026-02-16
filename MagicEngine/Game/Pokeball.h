@@ -45,8 +45,15 @@ private:
 
 };
 
-class PokeballTargetHitSystem : public ecs::System<PokeballTargetHitSystem>
+class PokeballKeepFrontSystem : public ecs::System<PokeballKeepFrontSystem, PokeballComponent>
 {
 public:
+	PokeballKeepFrontSystem();
 	bool PreRun() override;
+
+private:
+	void UpdateComp(PokeballComponent& comp);
+
+private:
+	float yaw;
 };

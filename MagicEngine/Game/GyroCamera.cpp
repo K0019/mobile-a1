@@ -8,7 +8,7 @@ GyroCameraSystem::GyroCameraSystem()
 bool GyroCameraSystem::PreRun()
 {
 	while (auto gyroEvent{ orientationReader.ExtractEvent() })
-		orientation = gyroEvent->rotation;
+		orientation = math::ToDegrees(gyroEvent->rotation);
 	return true;
 }
 

@@ -35,6 +35,7 @@ namespace math {
 		The angle in degrees.
 	*************************************************************************/
 	constexpr float ToDegrees(float radians);
+	constexpr Vec3 ToDegrees(Vec3 radians);
 
 	/*!***********************************************************************
 	\brief

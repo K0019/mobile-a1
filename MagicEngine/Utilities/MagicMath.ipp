@@ -21,6 +21,14 @@ namespace math {
 	{
 		return radians * 180.0f / PI_f;
 	}
+	constexpr Vec3 ToDegrees(Vec3 radians)
+	{
+		return Vec3{
+			ToDegrees(radians.x),
+			ToDegrees(radians.y),
+			ToDegrees(radians.z)
+		};
+	}
 
 	constexpr float PowSqr(float x)
 	{

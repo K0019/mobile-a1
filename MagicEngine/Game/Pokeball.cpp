@@ -9,6 +9,7 @@
 
 #include "Physics/Physics.h"
 #include "Game/Target.h"
+#include "Game/GyroCamera.h"
 
 PokeballComponent::PokeballComponent()
     : isThrown{}
@@ -128,10 +129,15 @@ void PokeballThrowSystem::UpdateComp(PokeballComponent& comp)
         return;
     swipeDir = -swipeDir * 0.01f; // Window dir is flipped
 
-    Vec3 launchVec{ swipeDir, 2.0f};
+    Vec3 launchVec{ swipeDir, 2.0f };
+    auto gyroCamIter{ ecs::GetCompsActiveBegin<GyroCameraComponent>() };
+    if (gyroCamIter != ecs::GetCompsEnd<GyroCameraComponent>())
+        launchVec = glm::rotateY(launchVec, math::ToRadians(gyroCamIter.GetEntity()->GetTransform().GetWorldRotation().y));
     CONSOLE_LOG(LEVEL_INFO) << "Launched pokeball at " << launchVec;
+
     if (auto physComp{ ecs::GetEntity(&comp)->GetComp<physics::PhysicsComp>() })
     {
+        physComp->SetEnabled(true);
         physComp->SetLinearVelocity(launchVec);
         physComp->SetUseGravity(true);
     }
@@ -156,4 +162,31 @@ void PokeballRespawnSystem::UpdateComp(PokeballComponent& comp)
     // If a target doesn't exist, load one
     if (ecs::GetCompsActiveBegin<PositionRandomizerComponent>() == ecs::GetCompsEnd<PositionRandomizerComponent>())
         PrefabManager::LoadPrefab("target");
+}
+
+PokeballKeepFrontSystem::PokeballKeepFrontSystem()
+    : System_Internal{ &PokeballKeepFrontSystem::UpdateComp }
+    , yaw{}
+{
+}
+
+bool PokeballKeepFrontSystem::PreRun()
+{
+    auto gyroCamIter{ ecs::GetCompsActiveBegin<GyroCameraComponent>() };
+    if (gyroCamIter == ecs::GetCompsEnd<GyroCameraComponent>())
+        return false;
+
+    yaw = gyroCamIter.GetEntity()->GetTransform().GetWorldRotation().y;
+    return true;
+}
+
+void PokeballKeepFrontSystem::UpdateComp(PokeballComponent& comp)
+{
+    if (comp.GetIsThrown())
+        return;
+
+    Transform& transform{ ecs::GetEntityTransform(&comp) };
+    transform.SetWorldRotation(Vec3{ 0.0f, yaw, 0.0f });
+    float radianYaw{ math::ToRadians(yaw) };
+    transform.SetWorldPosition(Vec3{ sinf(radianYaw), 0.0f, cosf(radianYaw) });
 }

@@ -123,6 +123,7 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, PokeballThrowSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, PokeballRespawnSystem{});
+    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_1, PokeballKeepFrontSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, NiceThrowSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, GyroCameraSystem{});
     

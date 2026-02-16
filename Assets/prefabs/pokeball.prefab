@@ -45,9 +45,7 @@
                     "_active": true,
                     "flags": {
                         "_majorityTrue": false,
-                        "_except": [
-                            "Enabled"
-                        ]
+                        "_except": []
                     }
                 },
                 "18236831197208900764": {
