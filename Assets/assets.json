@@ -1,3 +1,19 @@
 {
-    "files": []
+    "files": [
+        {
+            "filepath": "compiledassets/unitbox.mesh",
+            "assetType": "Mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 394651007363811311,
+                            "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
 }
