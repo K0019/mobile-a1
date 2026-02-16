@@ -37,6 +37,7 @@ All rights reserved.
 #include "VFS/VFS.h"
 
 #include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 #include "Engine/Input.h"
 
 #include "Engine/SceneManagement.h"
@@ -168,6 +169,7 @@ void MagicEngine::ExecuteFrame(RenderFrameData& frameData)
 
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
+	ST<EventsQueue>::Get()->AddEventForThisFrame(Events::GyroRotation{ frameData.gyroRotation });
 
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();

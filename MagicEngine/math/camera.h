@@ -220,7 +220,7 @@ class CameraPositioner_MoveTo final : public CameraPositionerInterface
       forward.z = cos(angles.x) * cos(angles.y);
 
       vec3 target = positionCurrent_ + forward;
-      currentTransform_ = glm::lookAt(positionCurrent_, target, vec3(0, 1, 0));
+      currentTransform_ = glm::lookAt(positionCurrent_, target, vec3(sin(angles.z), cos(angles.z), 0));
     }
 
     void setPosition(const vec3& p) { positionCurrent_ = p; }

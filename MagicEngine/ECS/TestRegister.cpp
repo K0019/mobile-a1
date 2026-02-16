@@ -38,6 +38,7 @@
 #include "Game/Pokeball.h"
 #include "Game/Target.h"
 #include "Game/NiceThrow.h"
+#include "Game/GyroCamera.h"
 
 void RegisterShit()
 {
@@ -77,6 +78,7 @@ void RegisterShit()
 	IRegisteredComponent<PokeballComponent>::RegisterComponent();
 	IRegisteredComponent<PositionRandomizerComponent>::RegisterComponent();
 	IRegisteredComponent<NiceThrowComponent>::RegisterComponent();
+	IRegisteredComponent<GyroCameraComponent>::RegisterComponent();
 }
 
 void PreloadShit()

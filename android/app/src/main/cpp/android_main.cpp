@@ -2,6 +2,8 @@
 #include <android_native_app_glue.h>
 #include <android/log.h>
 #include <android/asset_manager.h>
+#include <android/sensor.h>
+#include <android/looper.h>
 #include <cstdint>
 #include "core/engine/engine.h"  // Engine<> template and Core::Platform
 #include "Engine.h"               // MagicEngine class
@@ -33,6 +35,9 @@ class AndroidApp {
     MagicEngine engine;
     uint64_t sceneFeatureHandle_ = 0;
     uint64_t ui2dFeatureHandle_ = 0;
+
+    // For device rotation events
+    ASensorEventQueue* sensorEventQueue;
 public:
     void Initialize(Context& context) {
         engine.Init(context, true);  // Start in game mode on Android
@@ -54,6 +59,16 @@ public:
                 LOGI("Initialized UI2D overlay on GraphicsMain");
             }
         }
+
+        // Register device rotation permission
+        ASensorManager* sensorManager = ASensorManager_getInstance();
+        const ASensor* rotationSensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ROTATION_VECTOR);
+
+        ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+        sensorEventQueue = ASensorManager_createEventQueue(sensorManager, looper, LOOPER_ID_USER, NULL, NULL);
+
+        ASensorEventQueue_enableSensor(sensorEventQueue, rotationSensor);
+        ASensorEventQueue_setEventRate(sensorEventQueue, rotationSensor, 16666); // 60hz update
     }
 
     void Update(Context& context, RenderFrameData& frame)
@@ -74,6 +89,18 @@ public:
             gameView.viewportHeight = static_cast<float>(height);
             frame.presentedViewId = gameView.viewId;
         }
+
+        // Gyroscope
+        ASensorEvent event;
+        while (ASensorEventQueue_getEvents(sensorEventQueue, &event, 1) > 0)
+            if (event.type == ASENSOR_TYPE_ROTATION_VECTOR)
+            {
+                float qx = event.data[0], qy = event.data[1], qz = event.data[2], qw = event.data[3];
+                // Convert quaternion to vector
+                frame.gyroRotation.x = asinf(2.0f * (qw * qy - qz * qx));
+                frame.gyroRotation.z = atan2f(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx * qx + qy * qy));
+                frame.gyroRotation.y = atan2f(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy * qy + qz * qz));
+            }
 
         engine.ExecuteFrame(frame);
     }

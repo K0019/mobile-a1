@@ -18,6 +18,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "MagicMath.h"
 
 namespace Events {
 
@@ -36,6 +37,11 @@ namespace Events {
 	struct RequestReloadLuaScripts {};
 	// Consumed by: ScriptRefreshListenerSystem
 	struct LuaScriptsReloaded {};
+
+	struct GyroRotation
+	{
+		Vec3 rotation;
+	};
 
 	// Consumed by: NiceThrow
 	struct Game_NiceThrow {};

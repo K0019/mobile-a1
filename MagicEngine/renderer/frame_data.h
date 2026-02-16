@@ -116,6 +116,8 @@ struct RenderFrameData
     RenderSettings settings;
     std::vector<FrameData> views;
     uint32_t presentedViewId = 0;  // Which view should present to swapchain
+    // Gyroscope
+    vec3 gyroRotation = vec3(0.0f);
 };
 
 // Helper functions
