@@ -7,6 +7,11 @@
 
 #include "IFileStream.h"
 
+// Thanks microsoft
+#ifdef CreateDirectory
+#undef CreateDirectory
+#endif
+
 // Forward declarations
 class IVFSImpl;
 

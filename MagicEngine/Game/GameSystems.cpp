@@ -52,6 +52,8 @@ All rights reserved.
 #include "Engine/VideoPlayer.h"
 #include "Demo.h"
 
+#include "Game/Pokeball.h"
+
 void GameStateBase::OnExit()
 {
     for (auto layer{ ECS_LAYER::CUTOFF_PERMANENT + 1 }; layer < ECS_LAYER::CUTOFF_END; ++layer)
@@ -115,6 +117,10 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_3, BillboardSystem{});
     // Override custom viewport camera
     ecs::AddSystem(ECS_LAYER::RENDER_1, CameraCompUploadSystem{});
+
+
+    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, PokeballThrowSystem{});
+    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, PokeballRespawnSystem{});
     
 }
 

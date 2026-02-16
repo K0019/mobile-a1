@@ -1,0 +1,141 @@
+#include "Pokeball.h"
+#include "Engine/Platform/Android/AndroidInputBridge.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "Engine/Input.h"
+#include "Engine/PrefabManager.h"
+#include "core/platform/platform.h"
+
+#include "Physics/Physics.h"
+
+PokeballComponent::PokeballComponent()
+    : isThrown{}
+{
+}
+
+bool PokeballComponent::GetIsThrown() const
+{
+    return isThrown;
+}
+void PokeballComponent::SetThrown()
+{
+    isThrown = true;
+    launchTime = GameTime::TimeSinceStart();
+}
+
+float PokeballComponent::GetTimeInAir() const
+{
+    return GameTime::TimeSinceStart() - launchTime;
+}
+
+PokeballThrowSystem::PokeballThrowSystem()
+	: System_Internal{ &PokeballThrowSystem::UpdateComp }
+    , pressed{}, released{}
+{
+}
+
+bool PokeballThrowSystem::PreRun()
+{
+#ifdef __ANDROID__
+    // Look for any unowned pointer that just went down
+    int downPid = AndroidInputBridge::FindUnownedJustDown();
+    pressed = (downPid >= 0);
+
+    // Check if any pointer just went up (for release detection)
+    released = false;
+    for (int i = 0; i < AndroidInputBridge::MAX_POINTERS; ++i) {
+        if (AndroidInputBridge::State(i).justUp) {
+            released = true;
+            break;
+        }
+    }
+
+    if (pressed) {
+        const auto& ts = AndroidInputBridge::State(downPid);
+        m_activePid = downPid;
+        // Convert to UI space
+        Vec2 rawPos{ ts.x, ts.y };
+        float uiX, uiY;
+        if (!ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY))
+            return false;
+        downPos = pos = Vec2{ uiX, uiY };
+        return true;
+    }
+    else if (released) {
+        // Find a pointer that just went up and get its position
+        for (int i = 0; i < AndroidInputBridge::MAX_POINTERS; ++i) {
+            if (AndroidInputBridge::State(i).justUp) {
+                const auto& ts = AndroidInputBridge::State(i);
+                Vec2 rawPos{ ts.x, ts.y };
+                float uiX, uiY;
+                if (ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY)) {
+                    pos = Vec2{ uiX, uiY };
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    return false;
+#else
+    pressed = ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::M_LEFT);
+    released = ST<KeyboardMouseInput>::Get()->GetIsReleased(KEY::M_LEFT);
+
+    static int frameCounter = 0;
+    static bool lastPressed = false;
+    if (pressed != lastPressed || (frameCounter++ % 300 == 0)) {
+        Vec2 rawPos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+        printf("[ButtonInput] pressed=%d released=%d rawMousePos=(%.1f, %.1f) displaySize=(%dx%d)\n",
+            pressed, released, rawPos.x, rawPos.y, Core::Display().GetWidth(), Core::Display().GetHeight());
+        fflush(stdout);
+        lastPressed = pressed;
+    }
+
+    if (!(pressed || released))
+        return false;
+
+    Vec2 rawPos = MagicInput::GetMousePos();
+    float uiX, uiY;
+    if (!ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY))
+        return false;
+    pos = Vec2{ uiX, uiY };
+    if (pressed)
+        downPos = pos;
+    return true;
+#endif
+}
+
+void PokeballThrowSystem::UpdateComp(PokeballComponent& comp)
+{
+    if (!released)
+        return;
+
+    Vec2 swipeDir{ pos - downPos };
+    if (swipeDir.LengthSqr() <= std::numeric_limits<float>::epsilon())
+        return;
+    swipeDir = -swipeDir * 0.01f; // Window dir is flipped
+
+    Vec3 launchVec{ swipeDir, 2.0f};
+    CONSOLE_LOG(LEVEL_INFO) << "Launched pokeball at " << launchVec;
+    if (auto physComp{ ecs::GetEntity(&comp)->GetComp<physics::PhysicsComp>() })
+    {
+        physComp->SetLinearVelocity(launchVec);
+        physComp->SetUseGravity(true);
+    }
+    comp.SetThrown();
+}
+
+PokeballRespawnSystem::PokeballRespawnSystem()
+    : System_Internal{ &PokeballRespawnSystem::UpdateComp }
+{
+}
+
+void PokeballRespawnSystem::UpdateComp(PokeballComponent& comp)
+{
+    if (!comp.GetIsThrown())
+        return;
+    if (comp.GetTimeInAir() < 0.8f || ecs::GetEntityTransform(&comp).GetWorldPosition().y > -5.0f)
+        return;
+
+    ecs::DeleteEntity(ecs::GetEntity(&comp));
+    PrefabManager::LoadPrefab("pokeball");
+}
