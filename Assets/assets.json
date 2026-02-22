@@ -33,82 +33,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fuecoco_embed/body_a.material",
-            "assetType": "Material",
-            "sourcePath": "models/fuecoco_embed.fbx",
-            "sourceTimestamp": 134162379153628387,
-            "compiledTimestamp": 17717643320871969,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 116955051863833273,
-                            "name": "body_a0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fuecoco_embed/l_eye_00.material",
-            "assetType": "Material",
-            "sourcePath": "models/fuecoco_embed.fbx",
-            "sourceTimestamp": 134162379153628387,
-            "compiledTimestamp": 17717643320909419,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 125492759653513923,
-                            "name": "l_eye_000"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fuecoco_embed/fuecoco_embed.mesh",
-            "assetType": "Mesh",
-            "sourcePath": "models/fuecoco_embed.fbx",
-            "sourceTimestamp": 134162379153628387,
-            "compiledTimestamp": 17717643298929639,
-            "formatVersion": 1296388936,
-            "resources": [
-                {
-                    "resourceType": 6209910166724260588,
-                    "resourceEntries": [
-                        {
-                            "hash": 127655499025349327,
-                            "name": "fuecoco_embed0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fuecoco_embed/body_b_00.material",
-            "assetType": "Material",
-            "sourcePath": "models/fuecoco_embed.fbx",
-            "sourceTimestamp": 134162379153628387,
-            "compiledTimestamp": 17717643320891225,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 118245878514842303,
-                            "name": "body_b_000"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/pokeball_fixed/material.001.material",
             "assetType": "Material",
             "sourcePath": "models/pokeball_fixed.fbx",
@@ -122,23 +46,6 @@
                         {
                             "hash": 103411267631782623,
                             "name": "material.0010"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fuecoco_embed/base_color_texture.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17717643315102529,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 110381071841360563,
-                            "name": "base_color_texture0"
                         }
                     ]
                 }
