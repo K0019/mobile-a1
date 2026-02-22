@@ -1,0 +1,563 @@
+# Android Tech Stack & Integration Overview
+
+This document summarizes the tech stack and integration model used to run the MagicEngine game engine on Android, using the existing multi?platform C++ engine and the Android project under `android/`.
+
+---
+
+## 1. High-Level Architecture
+
+The Android build is a thin Java/Gradle wrapper around a cross?platform C++ engine:
+
+- **Android app layer**
+  - Java `NativeActivity` (`MainActivity`) packaged by Gradle / Android Studio.
+  - Uses the Android NDK to load a native shared library `libMagicEngineAndroid.so`.
+- **Native C++ engine layer**
+  - The same `MagicEngine` C++ codebase used on desktop (Vulkan renderer, physics, scripting, etc.).
+  - Built via CMake inside the Android Gradle project.
+  - Exposed to Android through `android_main.cpp` (NDK `android_native_app_glue` entry).
+
+Android is effectively just another platform for the engine: Java/Android code provides lifecycle, window, sensors, and packaging; the C++ engine implements rendering, audio, physics, and gameplay logic.
+
+---
+
+## 2. Android Project & Build Tooling
+
+### 2.1 Gradle / Android Studio Project
+
+**Location:** `android/`
+
+- Standard Android/Gradle project:
+  - `android/app/` contains `build.gradle`, `src/main/java`, `src/main/cpp`, `AndroidManifest.xml`, etc.
+  - The project can be opened directly in Android Studio.
+
+Responsibilities of the Android/Gradle layer:
+
+- Select ABIs (e.g., `arm64-v8a`), SDK version, and NDK.
+- Invoke CMake to build the native C++ library (`MagicEngineAndroid`).
+- Package:
+  - Native `.so` libraries: engine (`libMagicEngineAndroid.so`), FMOD, optional Vulkan validation layer.
+  - Game assets under `app/src/main/assets`.
+- Produce and sign debug/release APKs (`assembleDebug`, `assembleRelease`).
+
+### 2.2 Build Scripts
+
+- `scripts/build_android.ps1` (repo root): one?command Android pipeline:
+  - Asset manifest generation.
+  - ASTC texture recompression (via `AssetCompiler.exe`).
+  - Gradle build + install (`installDebug` / `installRelease`).
+
+- `android/build_android.ps1` and `android/build_android.sh`:
+  - Copy assets into the Android project.
+  - Generate `asset_manifest.txt`.
+  - Run `gradlew assembleDebug`.
+
+Supporting docs:
+
+- `android/BUILD.md` and the Android section of the root `README.md` describe:
+  - Prerequisites (Android Studio, SDK, NDK, Python, ADB).
+  - How to run the build scripts.
+  - Debugging tips (e.g., `adb logcat` filters).
+
+---
+
+## 3. Native C++ Build Stack (NDK + CMake)
+
+### 3.1 Android CMake Configuration
+
+**File:** `android/app/src/main/cpp/CMakeLists.txt`
+
+Responsibilities:
+
+- Define the Android native project and library:
+
+```cmake
+cmake_minimum_required(VERSION 3.22)
+project("MagicEngineAndroid")
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_link_options(-Wl,-z,max-page-size=16384)
+```
+
+- Pull in the full engine build:
+
+```cmake
+get_filename_component(PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../" ABSOLUTE)
+add_subdirectory("${PROJECT_ROOT}" "${CMAKE_CURRENT_BINARY_DIR}/magicengine-build")
+```
+
+This reuses the root `CMakeLists.txt`, which knows how to build `MagicEngine` and its dependencies for Android.
+
+- Import FMOD shared libraries for Android:
+
+```cmake
+set(FMOD_ROOT "${PROJECT_ROOT}/extern/lib/fmodAndroid")
+set(FMOD_CORE_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmod.so")
+set(FMOD_STUDIO_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmodstudio.so")
+
+add_library(fmod_core SHARED IMPORTED)
+add_library(fmod_studio SHARED IMPORTED)
+```
+
+These are copied into `app/src/main/jniLibs/${ANDROID_ABI}` so Gradle packages them.
+
+- Define the Android shared library and link:
+
+```cmake
+add_library(${CMAKE_PROJECT_NAME} SHARED
+    android_main.cpp
+)
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    PRIVATE
+    -Wl,--whole-archive
+    native_app_glue
+    MagicEngine
+    -Wl,--no-whole-archive
+    android
+    log
+    ${mediandk-lib}
+    fmod_core
+    fmod_studio
+)
+
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
+    VK_USE_PLATFORM_ANDROID_KHR=1
+)
+```
+
+`native_app_glue` is linked whole-archive so the `ANativeActivity_onCreate` entry point is retained.
+
+- Optionally imports Vulkan validation layer `.so` for debug builds when present in the NDK.
+
+### 3.2 Root CMake Configuration (Engine & Dependencies)
+
+**File:** `CMakeLists.txt` (repo root).
+
+Key responsibilities:
+
+- Define `MagicEngine` and global build settings:
+
+```cmake
+project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+```
+
+- Platform-specific defines:
+
+```cmake
+if(ANDROID)
+    add_definitions("-DVK_USE_PLATFORM_ANDROID_KHR=1")
+elseif(WIN32)
+    add_definitions("-DVK_USE_PLATFORM_WIN32_KHR=1")
+    add_definitions("-DNOMINMAX")
+endif()
+```
+
+- Submodules / dependencies (common to desktop and Android, with Android-only guards as needed):
+  - Vulkan stack: Vulkan-Headers, volk, VulkanMemoryAllocator.
+  - Shader tools: SPIRV-Cross, SPIRV-Reflect, SPIRV-Tools, glslang.
+  - Math & utilities: glm, fmt, spdlog, rapidjson, stb.
+  - Physics & navigation: JoltPhysics, RecastNavigation.
+  - Lua & LuaBridge.
+  - UI: ImGui, ImPlot, ImGuizmo.
+  - On Android, `KTX-Software` for KTX loaders.
+
+- Android?specific support:
+
+```cmake
+if(ANDROID)
+    add_link_options(-Wl,-z,max-page-size=16384)
+
+    set(NATIVE_APP_GLUE_DIR ${ANDROID_NDK}/sources/android/native_app_glue)
+    add_library(native_app_glue STATIC
+        ${NATIVE_APP_GLUE_DIR}/android_native_app_glue.c
+    )
+    target_include_directories(native_app_glue PUBLIC ${NATIVE_APP_GLUE_DIR})
+
+    find_library(android-lib android)
+    find_library(log-lib log)
+
+    target_link_libraries(native_app_glue ${android-lib} ${log-lib})
+
+    set(ANDROID_COMMON_LIBS
+        native_app_glue
+        ${android-lib}
+        ${log-lib}
+        CACHE INTERNAL "Common Android libraries"
+    )
+endif()
+```
+
+- Desktop-only tools and apps (editor, game, AssetCompiler) are added only when `NOT ANDROID`.
+
+---
+
+## 4. Java / Native Glue
+
+### 4.1 `MainActivity` (Java / NativeActivity)
+
+**File:** `android/app/src/main/java/com/magicengine/kurorekishi/MainActivity.java`
+
+Simplified outline:
+
+```java
+public class MainActivity extends NativeActivity {
+    static {
+        System.loadLibrary("fmod");
+        System.loadLibrary("fmodstudio");
+        System.loadLibrary("MagicEngineAndroid");
+    }
+
+    public native void setVulkanLayerPath(String path);
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        String layerPath = setupVulkanLayers(this);
+        if (layerPath != null) {
+            setVulkanLayerPath(layerPath);
+        }
+
+        try {
+            FMOD.init(this);
+        } catch (Exception e) {
+            // log error
+        }
+
+        super.onCreate(savedInstanceState);
+    }
+}
+```
+
+Responsibilities:
+
+- Extend `NativeActivity` so the app lifecycle and main loop are in native code.
+- Load FMOD and engine native libraries.
+- Initialize FMOD.
+- Optionally configure Vulkan validation layers by copying the JSON manifest from assets and calling `setVulkanLayerPath(path)`.
+
+### 4.2 NDK Entry Point (`android_main.cpp`)
+
+**File:** `android/app/src/main/cpp/android_main.cpp`
+
+Key responsibilities:
+
+1. **Attach to JVM and inspect assets**
+   - Attach current thread to the Java VM.
+   - Obtain `AAssetManager` from `app->activity->assetManager`.
+   - Verify that `asset_manifest.txt` can be opened and list a few root assets for sanity checking.
+
+2. **Initialize the Virtual File System (VFS)**
+
+```cpp
+VFS::Initialize();
+VFS::MountAndroidDirectory("", assetManager);
+```
+
+This uses `AndroidVFSImpl` internally to bridge the engine’s VFS to `AAssetManager`.
+
+3. **Engine wrapper: `AndroidApp`**
+
+`AndroidApp` owns the `MagicEngine` instance and adapts it to Android:
+
+- `Initialize(Context& context)`:
+  - Calls `engine.Init(context, true)` to start in “game mode”.
+  - Creates render features (scene + UI2D) and wires them into `GraphicsMain`.
+  - Sets up rotation vector sensor via NDK (`ASensorManager`, `ASensorEventQueue`).
+
+- `Update(Context&, RenderFrameData&)`:
+  - Creates a single full-screen view and sets its feature mask (scene + UI).
+  - Reads sensor events, converts quaternion rotation to Euler angles, fills `frame.gyroRotation`.
+  - Calls `engine.ExecuteFrame(frame)`.
+
+- `Shutdown(Context&)` handles cleanup hooks.
+
+4. **Engine context and app callbacks**
+
+```cpp
+struct EngineContext {
+    Engine<AndroidApp>* engine = nullptr;
+    bool initialized = false;
+};
+```
+
+In `android_main`:
+
+```cpp
+EngineContext ctx;
+app->userData = &ctx;
+app->onAppCmd = HandleCmd;
+app->onInputEvent = HandleInput;
+```
+
+`HandleCmd(android_app*, int32_t cmd)` routes NDK app lifecycle events:
+
+- `APP_CMD_INIT_WINDOW`:
+  - Configures and initializes `Core::Platform` for Android.
+  - Calls `Core::Platform::Get().GetLifecycle().OnResume()`.
+  - Allocates `Engine<AndroidApp>` and calls `Initialize()`.
+  - Binds `ANativeWindow` to the display subsystem (`Display::SetWindow`).
+- Other commands (`TERM_WINDOW`, `WINDOW_RESIZED`, `CONFIG_CHANGED`, `RESUME`, `PAUSE`, `STOP`, `DESTROY`, `LOW_MEMORY`) forward to `Core::Platform` subsystems.
+
+5. **Input Handling**
+
+```cpp
+static int32_t HandleInput(android_app* app, AInputEvent* event) {
+    EngineContext* ctx = static_cast<EngineContext*>(app->userData);
+    if (!ctx || !ctx->initialized) return 0;
+
+    int handled_ry = ry_handle_ainput_event(event);
+    int handled_core = Core::Platform::Get().GetInput().HandleInputEvent(event);
+    return (handled_ry || handled_core) ? 1 : 0;
+}
+```
+
+In the main loop:
+
+```cpp
+ry_pump_touch_events();
+Core::Platform::Get().GetInput().Update();
+ctx.engine->ExecuteFrame();
+```
+
+6. **Main Event Loop and Cleanup**
+
+- Uses `ALooper_pollOnce` to process pending events from Android.
+- When initialized:
+  - Pumps touch events and updates input.
+  - Calls `ExecuteFrame()` each iteration; exit if it returns `false`.
+- On exit:
+  - Shuts down `Engine<AndroidApp>`.
+  - Calls `Core::Platform::Get().Shutdown()`.
+
+7. **Vulkan Validation Layer JNI Bridge**
+
+```cpp
+extern "C" JNIEXPORT void JNICALL
+Java_com_magicengine_kurorekishi_MainActivity_setVulkanLayerPath(
+        JNIEnv* env, jobject, jstring layerPathJstr)
+{
+    const char* androidAbsolutePath = env->GetStringUTFChars(layerPathJstr, 0);
+    setenv("VK_LAYER_PATH", androidAbsolutePath, 1);
+    __android_log_print(ANDROID_LOG_INFO, "MagicEngine", "VK_LAYER_PATH set to: %s", androidAbsolutePath);
+    env->ReleaseStringUTFChars(layerPathJstr, androidAbsolutePath);
+}
+```
+
+This allows Vulkan validation layers to be enabled on Android by pointing `VK_LAYER_PATH` to the copied JSON manifest.
+
+---
+
+## 5. Asset Pipeline & Virtual File System
+
+### 5.1 Asset Copy & Manifest Generation
+
+On Android, assets live in the APK under `app/src/main/assets/`. The pipeline is:
+
+1. **Copy desktop assets ? Android assets (Gradle project)**
+
+Scripts (`android/build_android.ps1`, `android/build_android.sh`) copy from `Assets/` to `app/src/main/assets/`:
+
+- Folders: `compiledassets`, `Scenes -> scenes`, `scripts`, `behaviourtrees`, `prefabs`, `navmeshdata`, `Fonts`, `sounds`, `images`, etc.
+- Some directory names are normalized to lowercase (e.g., `Scenes` ? `scenes`) to avoid issues with Android’s case-sensitive asset system.
+
+2. **ASTC texture recompression**
+
+Driven by `scripts/build_android.ps1` in the repo root:
+
+- Uses `AssetCompiler.exe` (built from the desktop toolchain) to:
+  - Convert BCn desktop textures to ASTC 4x4 for mobile GPUs.
+  - Populate Android-specific textures (typically under `CompiledAssets/android/`).
+- Controlled by flags:
+  - `-SkipAssetCompile` to skip recompression if textures haven’t changed.
+  - `-PrepareOnly` to do asset work without building the APK.
+
+3. **asset_manifest.txt generation**
+
+- The scripts enumerate all files in `app/src/main/assets`, excluding:
+  - `asset_manifest.txt` itself.
+  - `VkLayer_khronos_validation.json`.
+- They write a sorted, newline-separated list of relative paths to `asset_manifest.txt`.
+
+Example generation logic (PowerShell):
+
+```powershell
+Get-ChildItem -Path $AndroidAssets -Recurse -File |
+    Where-Object { $_.Name -ne "asset_manifest.txt" -and $_.Name -ne "VkLayer_khronos_validation.json" } |
+    ForEach-Object {
+        $relativePath = $_.FullName.Substring($AndroidAssets.Length + 1).Replace('\\', '/')
+        $ManifestEntries += $relativePath
+    }
+
+$ManifestEntries | Sort-Object | Set-Content -Path $ManifestPath -Encoding UTF8
+```
+
+### 5.2 Android VFS Implementation
+
+**File:** `MagicEngine/VFS/AndroidVFSImpl.cpp`
+
+`AndroidVFSImpl` adapts `AAssetManager` to the engine’s `VFS` interface. Key features:
+
+- **Case-insensitive path lookup**:
+
+  - `BuildPathLookup()`:
+    - Opens `asset_manifest.txt` from the APK.
+    - Reads all lines (one per asset path).
+    - Builds a map: `lowercasePath ? actualPath`.
+
+  - `ResolvePath(const std::string& path)`:
+    - First attempts `AAssetManager_open` with the original path (fast path).
+    - On failure, lowercases the path and looks it up in the manifest map.
+    - Returns the resolved “real” path if found, otherwise the original path.
+
+- **File operations**:
+
+  - `OpenFile(path, FileMode::Read)`:
+    - Resolves the path and opens an `AAsset` with `AASSET_MODE_RANDOM`.
+    - Wraps it in an `AndroidFileStream` (read-only).
+
+  - `FileExists(path)`:
+    - Tries to open the asset by resolved path.
+    - If that fails, it checks whether any manifest entries live under that directory path.
+
+  - `ReadFile(path, std::vector<uint8_t>& outBuffer)`:
+    - Uses the `IFileStream` wrapper to read all bytes into memory.
+
+  - `ListDirectory(path)`:
+    - Uses `asset_manifest.txt` to find all entries that live exactly one level under `path` (files only, not subdirectories).
+
+- **Write operations** (`Write`, `DeleteFile`, `CreateDirectory`, etc.) are all disabled or return `false`, since APK assets are read-only.
+
+In practice, this enables engine code to use the same asset paths on both Windows and Android (e.g., `Assets/scripts/target_collision.lua`) even though Android has different filesystem semantics.
+
+---
+
+## 6. Audio: FMOD Integration on Android
+
+- The engine uses FMOD for all audio (BGM, SFX). For example, Lua scripts like `Assets/scripts/target_collision.lua` call into the engine’s audio API, which is backed by FMOD.
+
+On Android:
+
+- FMOD is consumed as prebuilt shared libraries:
+
+  - `libfmod.so`, `libfmodstudio.so` are located under:
+    - `extern/lib/fmodAndroid/<ABI>/`.
+  - Imported in `android/app/src/main/cpp/CMakeLists.txt` as `IMPORTED` SHARED libraries.
+  - Copied into `app/src/main/jniLibs/<ABI>` so Gradle bundles them into the APK.
+
+- Java:
+
+  - Loads `fmod` and `fmodstudio` with `System.loadLibrary(...)`.
+  - Calls `FMOD.init(this)` during `MainActivity.onCreate()`.
+
+- C++:
+
+  - The engine’s existing audio subsystem talks to FMOD via the same abstractions used on desktop; only the underlying FMOD binaries differ.
+
+---
+
+## 7. Rendering: Vulkan on Android
+
+The engine uses Vulkan as its only renderer across platforms.
+
+On Android:
+
+- Build-time configuration:
+
+  - Root CMake and Android CMake both define `VK_USE_PLATFORM_ANDROID_KHR=1`.
+  - Links against Vulkan via the unified dependency set (Vulkan-Headers, volk, VMA, KTX-Software built for Android).
+
+- Window integration:
+
+  - `Core::Platform::Get().GetDisplay().SetWindow(app->window)` binds the `ANativeWindow` from Android to the engine’s display subsystem.
+  - The engine then creates and manages:
+    - Vulkan instance.
+    - Surface tied to `ANativeWindow`.
+    - Swapchain, render passes, etc.
+
+- Validation layers (optional, typically debug-only):
+
+  - NDK path is probed for `libVkLayer_khronos_validation.so`.
+  - Java copies `VkLayer_khronos_validation.json` to a private directory.
+  - Native code sets `VK_LAYER_PATH` from that directory via `setVulkanLayerPath`.
+  - Vulkan loader can then enable validation layers using environment configuration.
+
+---
+
+## 8. Scripting: Lua on Android
+
+- Engine scripting is implemented with a Lua wrapper (`LuaCpp`) and LuaBridge bindings.
+
+- Lua contexts (`LuaContext` in `MagicEngine/Scripting/LuaLibrary/LuaContext.cpp`) are created with:
+
+  - Standard libraries loaded.
+  - Engine libraries registered as `LuaLibrary` instances.
+  - Built-in C functions and engine globals injected.
+
+- Script loading:
+
+  - Uses the VFS to read `.lua` files:
+    - On Windows, through native filesystem.
+    - On Android, via `AndroidVFSImpl` ? `AAssetManager`.
+
+- Example script: `Assets/scripts/target_collision.lua`:
+
+```lua
+function OnTriggerEnter(targetEntity, ballEntity)
+    local ballComp = ballEntity:GetPokeballComponent();
+    if ballComp:Exists() then
+        Magic.AudioManager.PlaySound(HIT_SFX_NAME, false, Magic.AudioType.SFX)
+        Magic.Log(Magic.LogLevel.info, "[SFX] Pokeball hit target!")
+        ballComp:OnTargetHit(targetEntity)
+    end
+end
+```
+
+This script runs unmodified on Android; the only platform difference is how the underlying `.lua` file is opened (Android VFS vs. desktop filesystem).
+
+---
+
+## 9. End-to-End Flow Summary
+
+1. **Desktop preparation**:
+   - Build the engine and `AssetCompiler.exe` via the standard CMake/Visual Studio pipeline.
+   - Use `scripts/build_android.ps1` (or the Android-specific scripts) to:
+     - Generate or refresh `asset_manifest.txt`.
+     - Run ASTC texture recompression for mobile-friendly textures.
+     - Copy assets into `android/app/src/main/assets`.
+
+2. **Android build**:
+   - CMake (invoked by Gradle) builds `MagicEngineAndroid`:
+     - Reuses the unified engine build, adapted to Android.
+     - Links against FMOD, Vulkan, native app glue, and other libs.
+   - Gradle packages:
+     - `libMagicEngineAndroid.so`, FMOD libs, optional Vulkan validation layer.
+     - All assets listed in `asset_manifest.txt`.
+
+3. **App startup (Java)**:
+   - `MainActivity` (a `NativeActivity`) loads FMOD libs and `MagicEngineAndroid`.
+   - Initializes FMOD and optionally sets up Vulkan validation layer path.
+   - Control transfers to the NDK’s `android_main`.
+
+4. **App startup (native)**:
+   - `android_main` attaches to JVM, sets up the VFS (`MountAndroidDirectory`).
+   - Creates and initializes `Engine<AndroidApp>` via `Core::Platform`.
+   - Binds `ANativeWindow` and sensors.
+
+5. **Main loop**:
+   - Uses `ALooper_pollOnce` to process Android events.
+   - Per-frame:
+     - Pumps input (`ry_pump_touch_events`, `Core::Platform::Get().GetInput().Update()`).
+     - Gathers sensor data (rotation vector).
+     - Builds a rendering `RenderFrameData` with scene/UI render features.
+     - Executes a frame through `engine.ExecuteFrame()`.
+
+6. **Gameplay logic & assets**:
+   - Lua scripts and other game content are loaded via the cross-platform VFS from `asset_manifest.txt` in the APK.
+   - Audio playback is handled via FMOD.
+   - Rendering is done with Vulkan targeting Android’s `ANativeWindow`.
+
+Android thus becomes a thin platform layer: the same C++ engine, assets, and Lua gameplay scripts are reused, with Java/NDK glue handling lifecycle, windowing, asset packaging, and platform services.
