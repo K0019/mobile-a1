@@ -400,17 +400,20 @@ namespace {
         // Retrieve material names for meshes
         std::map<uint32_t, uint32_t> nameOffsetToMaterialIndex;
 
-        const char* p = materialNamesBuffer.data();
-        while (p < materialNamesBuffer.data() + materialNamesBuffer.size())
+        if (!materialNamesBuffer.empty())
         {
-            uint32_t offset = static_cast<uint32_t>(p - materialNamesBuffer.data());
-            std::string name(p);
+            const char* p = materialNamesBuffer.data();
+            while (p < materialNamesBuffer.data() + materialNamesBuffer.size())
+            {
+                uint32_t offset = static_cast<uint32_t>(p - materialNamesBuffer.data());
+                std::string name(p);
 
-            if (name.empty()) break;
+                if (name.empty()) break;
 
-            nameOffsetToMaterialIndex[offset] = static_cast<uint32_t>(nameOffsetToMaterialIndex.size());
+                nameOffsetToMaterialIndex[offset] = static_cast<uint32_t>(nameOffsetToMaterialIndex.size());
 
-            p += name.length() + 1;
+                p += name.length() + 1;
+            }
         }
 
         // Rebuild the skeleton
@@ -469,23 +472,26 @@ namespace {
             mesh.name = &meshNameBuffer[meshInfo.nameOffset];
 
             // Find the material index for this mesh
-            mesh.materialIndex = nameOffsetToMaterialIndex[meshInfo.materialNameIndex];
-            std::string materialname = { materialNamesBuffer.data() + meshInfo.materialNameIndex };
-            to_lower_str(materialname);
-
-            std::string constructedPathToMaterial = VFS::JoinPath(VFS::GetParentPath(filepath), materialname + ".material");
             size_t materialHash{ 0 };
-            const auto& fpManager = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager();
-            auto materialEntry = fpManager.GetFileEntry(constructedPathToMaterial);
-            if (!materialEntry)
+            if (!materialNamesBuffer.empty() && meshInfo.materialNameIndex < materialNamesBuffer.size())
             {
-                // Fallback: check materials/ subdirectory (for flat-copied meshes)
-                std::string fallbackPath = VFS::JoinPath("compiledassets/materials", materialname + ".material");
-                materialEntry = fpManager.GetFileEntry(fallbackPath);
-            }
-            if (materialEntry)
-            {
-                materialHash = materialEntry->associatedResources[0].hashes[0];
+                mesh.materialIndex = nameOffsetToMaterialIndex[meshInfo.materialNameIndex];
+                std::string materialname = { materialNamesBuffer.data() + meshInfo.materialNameIndex };
+                to_lower_str(materialname);
+
+                std::string constructedPathToMaterial = VFS::JoinPath(VFS::GetParentPath(filepath), materialname + ".material");
+                const auto& fpManager = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager();
+                auto materialEntry = fpManager.GetFileEntry(constructedPathToMaterial);
+                if (!materialEntry)
+                {
+                    // Fallback: check materials/ subdirectory (for flat-copied meshes)
+                    std::string fallbackPath = VFS::JoinPath("compiledassets/materials", materialname + ".material");
+                    materialEntry = fpManager.GetFileEntry(fallbackPath);
+                }
+                if (materialEntry)
+                {
+                    materialHash = materialEntry->associatedResources[0].hashes[0];
+                }
             }
             outMaterialHashes->push_back(materialHash);
 

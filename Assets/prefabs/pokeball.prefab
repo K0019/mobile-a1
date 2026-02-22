@@ -18,21 +18,13 @@
                 "z": 0.20000000298023224
             },
             "components": {
-                "5352011725353660904": {
-                    "_active": true,
-                    "meshHandle": {
-                        "hash": 394651007363811311
-                    },
-                    "materials": [],
-                    "castShadowOverride": -1
-                },
                 "6766054303456732338": {
                     "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "Pokeball"
+                    "name": "pokeball"
                 },
                 "7818275562449435868": {
                     "_active": true
@@ -66,6 +58,46 @@
                             "Is Trigger"
                         ]
                     }
+                }
+            }
+        },
+        {
+            "parentIndex": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.20000000298023224,
+                "y": 0.20000000298023224,
+                "z": 0.20000000298023224
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 106296386143066853
+                    },
+                    "materials": [],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Pokeball Model"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 103034135143601902
                 }
             }
         }

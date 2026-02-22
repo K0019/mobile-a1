@@ -1,0 +1,1 @@
+Magic.Log(Magic.LogLevel.error, "HELLO")

@@ -646,7 +646,8 @@ namespace compiler
 			meshInfo.firstIndex = indexOffset;
 			meshInfo.indexCount = static_cast<uint32_t>(mesh.indices.size());
 			meshInfo.firstVertex = vertexOffset;
-			meshInfo.materialNameIndex = materialIndexToNameOffset[mesh.materialIndex];
+			auto matIt = materialIndexToNameOffset.find(mesh.materialIndex);
+			meshInfo.materialNameIndex = (matIt != materialIndexToNameOffset.end()) ? matIt->second : 0;
 			meshInfo.meshBounds = mesh.bounds;
 
             meshInfo.nameOffset = static_cast<uint32_t>(meshNames.size());
