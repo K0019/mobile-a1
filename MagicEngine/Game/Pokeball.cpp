@@ -7,13 +7,19 @@
 #include "Engine/Events/EventsTypeBasic.h"
 #include "core/platform/platform.h"
 
+#include <glm/gtc/quaternion.hpp>
+
 #include "Physics/Physics.h"
 #include "Game/Target.h"
 #include "Game/GyroCamera.h"
+#include "Engine/Audio.h"
 
 PokeballComponent::PokeballComponent()
     : isThrown{}
+    , launchTime{}
+    , spinAngle{}
 {
+	RandomizeIdleSpin();
 }
 
 bool PokeballComponent::GetIsThrown() const
@@ -31,15 +37,76 @@ float PokeballComponent::GetTimeInAir() const
     return GameTime::TimeSinceStart() - launchTime;
 }
 
+Vec3 PokeballComponent::GetSpinAxis() const
+{
+    return spinAxis;
+}
+
+float PokeballComponent::GetSpinSpeed() const
+{
+    return spinSpeed;
+}
+
+float PokeballComponent::GetSpinAngle() const
+{
+    return spinAngle;
+}
+
+void PokeballComponent::AccumulateSpin(float dt)
+{
+    spinAngle += spinSpeed * dt;
+    if (spinAngle > 360.0f)
+        spinAngle -= 360.0f;
+}
+
+void PokeballComponent::RandomizeIdleSpin()
+{
+	spinAxis = Vec3{ randomFloat(-1.0f, 1.0f), randomFloat(-1.0f, 1.0f), randomFloat(-1.0f, 1.0f) };
+	float len = spinAxis.Length();
+	if (len > 0.001f)
+		spinAxis = spinAxis * (1.0f / len);
+	else
+		spinAxis = Vec3{ 0.0f, 1.0f, 0.0f };
+
+	float baseSpeed = randomFloat(90.0f, 270.0f);
+	float sign = (randomRange(0, 1) == 0 ? -1.0f : 1.0f);
+	spinSpeed = baseSpeed * sign;
+}
+
 void PokeballComponent::OnTargetHit(ecs::EntityHandle targetEntity)
 {
     CONSOLE_LOG(LEVEL_INFO) << "TARGET HIT!";
     ecs::DeleteEntity(targetEntity);
     ST<EventsQueue>::Get()->AddEventForNextFrame(Events::Game_NiceThrow{});
 
+    // Optionally play a hit sound from the referenced audio entity (looked up via UID)
+    if (hitSoundSource.IsValidReference())
+    {
+        if (auto audioEntity = static_cast<ecs::EntityHandle>(hitSoundSource))
+        {
+            if (auto* audioComp = audioEntity->GetComp<AudioSourceComponent>())
+            {
+                audioComp->Play(AudioType::SFX);
+            }
+        }
+    }
+
     // Let respawn system handle our ball respawning
     launchTime = -999.0f;
     ecs::GetEntityTransform(this).SetWorldPosition(Vec3{ 0.0f, -999.0f, 0.0f });
+
+	// Optionally play a hit sound from the referenced audio entity (looked up via UID)
+	if (hitSoundSource.IsValidReference())
+	{
+		ecs::EntityHandle audioEntity = hitSoundSource;
+		if (audioEntity)
+		{
+			if (auto* audioComp = audioEntity->GetComp<AudioSourceComponent>())
+			{
+				audioComp->Play(AudioType::SFX);
+			}
+		}
+	}
 }
 
 PokeballThrowSystem::PokeballThrowSystem()
@@ -156,8 +223,17 @@ void PokeballRespawnSystem::UpdateComp(PokeballComponent& comp)
     if (comp.GetTimeInAir() < 0.8f || ecs::GetEntityTransform(&comp).GetWorldPosition().y > -5.0f)
         return;
 
-    ecs::DeleteEntity(ecs::GetEntity(&comp));
-    PrefabManager::LoadPrefab("pokeball");
+	// Delete old ball and spawn a new one; ensure the new ball gets fresh spin state
+	ecs::DeleteEntity(ecs::GetEntity(&comp));
+	auto newBall = PrefabManager::LoadPrefab("pokeball");
+	if (newBall)
+	{
+		if (auto* newComp = newBall->GetComp<PokeballComponent>())
+		{
+			// Re-randomize idle spin so each respawn can spin in a new direction
+			newComp->RandomizeIdleSpin();
+		}
+	}
 
     // If a target doesn't exist, load one
     if (ecs::GetCompsActiveBegin<PositionRandomizerComponent>() == ecs::GetCompsEnd<PositionRandomizerComponent>())
@@ -185,8 +261,26 @@ void PokeballKeepFrontSystem::UpdateComp(PokeballComponent& comp)
     if (comp.GetIsThrown())
         return;
 
+    comp.AccumulateSpin(GameTime::Dt());
+
+    // Build a quaternion for the idle spin around the random axis
+    float spinRad = math::ToRadians(comp.GetSpinAngle());
+    glm::quat spinQuat = glm::angleAxis(spinRad, glm::normalize(glm::vec3(comp.GetSpinAxis())));
+
+    // Build a quaternion for facing the camera yaw
+    glm::quat yawQuat = glm::angleAxis(math::ToRadians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Combine: face the camera, then apply the idle spin
+    glm::quat finalQuat = yawQuat * spinQuat;
+
+    // Extract Euler angles using YXZ convention to match Mat4::Set's glm::yawPitchRoll(y,x,z).
+    // Using glm::eulerAngles here causes gimbal lock because it uses a different decomposition.
+    float extractedY, extractedX, extractedZ;
+    glm::extractEulerAngleYXZ(glm::mat4_cast(finalQuat), extractedY, extractedX, extractedZ);
+    Vec3 eulerDeg{ math::ToDegrees(extractedX), math::ToDegrees(extractedY), math::ToDegrees(extractedZ) };
+
     Transform& transform{ ecs::GetEntityTransform(&comp) };
-    transform.SetWorldRotation(Vec3{ 0.0f, yaw, 0.0f });
+    transform.SetWorldRotation(eulerDeg);
     float radianYaw{ math::ToRadians(yaw) };
     transform.SetWorldPosition(Vec3{ sinf(radianYaw), 0.0f, cosf(radianYaw) });
 }

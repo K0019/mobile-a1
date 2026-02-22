@@ -71,76 +71,30 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fuecoco_embed/body_a.material",
-            "assetType": "Material",
-            "sourcePath": "models/fuecoco_embed.fbx",
-            "sourceTimestamp": 134162398091107484,
-            "compiledTimestamp": 17717662276836154,
-            "formatVersion": 1,
+            "filepath": "sounds/bgm(sergio's magic dustbin).mp3",
+            "assetType": "Audio",
             "resources": [
                 {
-                    "resourceType": 645030769166885040,
+                    "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 129197014329386639,
-                            "name": "body_a0"
+                            "hash": 132385696377363543,
+                            "name": "bgm(sergio's magic dustbin)0"
                         }
                     ]
                 }
             ]
         },
         {
-            "filepath": "compiledassets/models/fuecoco_embed/l_eye_00.material",
-            "assetType": "Material",
-            "sourcePath": "models/fuecoco_embed.fbx",
-            "sourceTimestamp": 134162398091107484,
-            "compiledTimestamp": 17717662276871304,
-            "formatVersion": 1,
+            "filepath": "sounds/nice shot! wii sports - quicksounds.com.mp3",
+            "assetType": "Audio",
             "resources": [
                 {
-                    "resourceType": 645030769166885040,
+                    "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 138638520677099163,
-                            "name": "l_eye_000"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fuecoco_embed/fuecoco_embed.mesh",
-            "assetType": "Mesh",
-            "sourcePath": "models/fuecoco_embed.fbx",
-            "sourceTimestamp": 134162398091107484,
-            "compiledTimestamp": 17717662256948233,
-            "formatVersion": 1296388936,
-            "resources": [
-                {
-                    "resourceType": 6209910166724260588,
-                    "resourceEntries": [
-                        {
-                            "hash": 141708357141849765,
-                            "name": "fuecoco_embed0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fuecoco_embed/body_b_00.material",
-            "assetType": "Material",
-            "sourcePath": "models/fuecoco_embed.fbx",
-            "sourceTimestamp": 134162398091107484,
-            "compiledTimestamp": 17717662276854134,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 132068938701137557,
-                            "name": "body_b_000"
+                            "hash": 1616175418136114593,
+                            "name": "nice shot! wii sports - quicksounds.com0"
                         }
                     ]
                 }
@@ -160,23 +114,6 @@
                         {
                             "hash": 103411267631782623,
                             "name": "material.0010"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fuecoco_embed/base_color_texture.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17717662271184230,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 125719259050731147,
-                            "name": "base_color_texture0"
                         }
                     ]
                 }

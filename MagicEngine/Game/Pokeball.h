@@ -1,5 +1,6 @@
 #pragma once
 #include "ECS/IRegisteredComponent.h"
+#include "ECS/EntityUID.h"
 
 class PokeballComponent
 	: public IRegisteredComponent<PokeballComponent>
@@ -14,9 +15,21 @@ public:
 
 	void OnTargetHit(ecs::EntityHandle targetEntity);
 
+	Vec3 GetSpinAxis() const;
+	float GetSpinSpeed() const;
+	float GetSpinAngle() const;
+	void AccumulateSpin(float dt);
+	void RandomizeIdleSpin();
+
+	// Optional audio source entity to play sound when a target is hit
+	EntityReference hitSoundSource;
+
 private:
 	bool isThrown;
 	float launchTime;
+	Vec3 spinAxis;
+	float spinSpeed;
+	float spinAngle;
 };
 
 class PokeballThrowSystem : public ecs::System<PokeballThrowSystem, PokeballComponent>
