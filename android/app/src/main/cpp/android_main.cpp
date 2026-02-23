@@ -18,6 +18,10 @@
 
 #include <stdlib.h> // For using setenv to enable vulkan validation
 
+#ifdef __ANDROID__
+#include <unistd.h> // For usleep on Android
+#endif
+
 #ifdef NDEBUG
   #define LOGI(...) ((void)0)
   #define ASSET_LOGI(...) ((void)0)
@@ -60,11 +64,11 @@ public:
             }
         }
 
-        // Register device rotation permission
+        // Register device rotation sensor
         ASensorManager* sensorManager = ASensorManager_getInstance();
         const ASensor* rotationSensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ROTATION_VECTOR);
 
-        ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+        ALooper* looper = Core::Platform::Get().GetAndroidApp()->looper;
         sensorEventQueue = ASensorManager_createEventQueue(sensorManager, looper, LOOPER_ID_USER, NULL, NULL);
 
         ASensorEventQueue_enableSensor(sensorEventQueue, rotationSensor);
@@ -96,7 +100,7 @@ public:
             if (event.type == ASENSOR_TYPE_ROTATION_VECTOR)
             {
                 float qx = event.data[0], qy = event.data[1], qz = event.data[2], qw = event.data[3];
-                // Convert quaternion to vector
+                // Convert quaternion to Euler angles (radians)
                 frame.gyroRotation.x = asinf(2.0f * (qw * qy - qz * qx));
                 frame.gyroRotation.z = atan2f(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx * qx + qy * qy));
                 frame.gyroRotation.y = atan2f(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy * qy + qz * qz));
@@ -304,38 +308,33 @@ void android_main(android_app* app) {
     app->onInputEvent = HandleInput;
 
     LOGI("Entering main event loop");
-    int frameCount = 0;
 
     while (true) {
         int events;
         android_poll_source* source;
 
-        // Poll all is deprecated, please check if pollOnce here actually causes problems
-        while (ALooper_pollOnce(0, nullptr, &events, (void**)&source) >= 0) {
-            if (source) {
-                source->process(app, source);
-            }
+        int id = ALooper_pollOnce(ctx.initialized ? 0 : -1, nullptr, &events, (void**)&source);
+        if (id == ALOOPER_POLL_ERROR) {
+            LOGE("pollOnce error!");
+        } else if (source) {
+            source->process(app, source);
+        }
 
-            if (app->destroyRequested) {
-                LOGI("Destroy requested, exiting loop");
-                goto cleanup;
-            }
+        if (app->destroyRequested) {
+            LOGI("Destroy requested, exiting loop");
+            goto cleanup;
         }
 
         if (ctx.initialized && ctx.engine) {
-            //ry_fire_tap_if_any();
-            //ry_input_dispatch_frame_events();
-          //  ry_fire_tap_if_any();
-            ry_pump_touch_events();         // <-- replaces old tick + fire
-
+            ry_pump_touch_events();
             Core::Platform::Get().GetInput().Update();
 
-            //ry_tick_android_input();
-            //TK Testing this stuff for input
             if (!ctx.engine->ExecuteFrame()) {
                 LOGE("ExecuteFrame returned false!");
                 break;
             }
+        } else {
+            usleep(10000);
         }
     }
 

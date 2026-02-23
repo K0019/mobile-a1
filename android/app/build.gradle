@@ -41,7 +41,8 @@ tasks.register('recompressAstcTextures') {
             workingDir repoRoot
             commandLine 'py', astcScript.absolutePath,
                 '--assetcompiler', assetCompiler.absolutePath,
-                '--assets-root', assetsRoot.absolutePath
+                '--assets-root', assetsRoot.absolutePath,
+                '--include-non-textures'
         }
     }
 }
@@ -96,6 +97,9 @@ afterEvaluate {
     android.applicationVariants.configureEach { variant ->
         def mergeTask = tasks.named("merge${variant.name.capitalize()}Assets")
         mergeTask.configure {
+            // Force re-run so doLast cleanup always executes (removes desktop
+            // textures, flattens android/ subfolder, copies compiled images).
+            outputs.upToDateWhen { false }
             doLast {
                 def mergedDir = outputDir.get().asFile
 
@@ -176,7 +180,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.ryengine.vulkan"
+        applicationId "com.mobilea1.app"
         minSdk 30
         targetSdk 34
         versionCode 1
@@ -197,6 +201,10 @@ android {
 
     aaptOptions {
         noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json', 'meta',
+                   'mesh', 'anim',                        // Binary assets (seek/random-access required)
+                   'hina_sl', 'glsl',                     // Shader source files (runtime compilation)
+                   'scene', 'prefab',                     // Scene/prefab JSON files
+                   'ttf',                                 // Font files
                    'mp4', 'webm', 'mkv', 'mov', 'avi',   // Video (MediaCodec needs uncompressed for fd access)
                    'wav', 'mp3', 'ogg', 'flac'            // Audio (reliable AAsset access)
         // Exclude logs and C# project files (keep .meta for hash resolution)
