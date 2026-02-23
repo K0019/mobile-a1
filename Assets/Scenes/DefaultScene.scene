@@ -139,9 +139,6 @@
                     "scripts": [
                         {
                             "scriptName": "bgm_manager.lua"
-                        },
-                        {
-                            "scriptName": "debug.lua"
                         }
                     ]
                 }
