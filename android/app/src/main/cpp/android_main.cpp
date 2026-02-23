@@ -5,6 +5,7 @@
 #include <android/sensor.h>
 #include <android/looper.h>
 #include <cstdint>
+#include <glm/glm.hpp>
 #include "core/engine/engine.h"  // Engine<> template and Core::Platform
 #include "Engine.h"               // MagicEngine class
 #include "renderer/gfx_renderer.h"  // GfxRenderer and RenderFrameData
@@ -39,9 +40,11 @@ class AndroidApp {
     MagicEngine engine;
     uint64_t sceneFeatureHandle_ = 0;
     uint64_t ui2dFeatureHandle_ = 0;
-    ASensorEventQueue* sensorEventQueue = nullptr;
-
+    
 public:
+    ASensorEventQueue* sensorEventQueue = nullptr;
+    glm::vec3 gyroRotation = glm::vec3(0.0f);
+
     void Initialize(Context& context) {
         engine.Init(context, true);  // Start in game mode on Android
 
@@ -64,17 +67,25 @@ public:
         }
 
         ASensorManager* sensorManager = ASensorManager_getInstance();
+        
+        // Try rotation vector first, fall back to game rotation vector
         const ASensor* rotationSensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ROTATION_VECTOR);
+        if (!rotationSensor) {
+            LOGI("TYPE_ROTATION_VECTOR not available, trying TYPE_GAME_ROTATION_VECTOR");
+            rotationSensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_GAME_ROTATION_VECTOR);
+        }
 
         if (rotationSensor && Core::Platform::Get().GetAndroidApp()) {
             ALooper* looper = Core::Platform::Get().GetAndroidApp()->looper;
             sensorEventQueue = ASensorManager_createEventQueue(sensorManager, looper, LOOPER_ID_USER, NULL, NULL);
             ASensorEventQueue_enableSensor(sensorEventQueue, rotationSensor);
             ASensorEventQueue_setEventRate(sensorEventQueue, rotationSensor, 16666);
-            LOGI("Gyroscope sensor initialized");
+            LOGI("Gyroscope sensor initialized successfully");
         } else {
             sensorEventQueue = nullptr;
-            LOGI("Gyroscope sensor not available");
+            LOGI("Gyroscope sensor NOT available - rotationSensor=%p, androidApp=%p", 
+                 rotationSensor, 
+                 Core::Platform::Get().GetAndroidApp());
         }
     }
 
@@ -97,16 +108,9 @@ public:
             frame.presentedViewId = gameView.viewId;
         }
 
-        // Gyroscope: read rotation vector sensor events
-        ASensorEvent event;
-        while (sensorEventQueue && ASensorEventQueue_getEvents(sensorEventQueue, &event, 1) > 0) {
-            if (event.type == ASENSOR_TYPE_ROTATION_VECTOR) {
-                float qx = event.data[0], qy = event.data[1], qz = event.data[2], qw = event.data[3];
-                frame.gyroRotation.x = asinf(2.0f * (qw * qy - qz * qx));
-                frame.gyroRotation.z = atan2f(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx * qx + qy * qy));
-                frame.gyroRotation.y = atan2f(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy * qy + qz * qz));
-            }
-        }
+        // Gyroscope reading now happens in the main event loop (when LOOPER_ID_USER is returned)
+        // This follows the official native-activity sample pattern
+        frame.gyroRotation = gyroRotation;
 
         engine.ExecuteFrame(frame);
     }
@@ -118,6 +122,7 @@ public:
 
 struct EngineContext {
     Engine<AndroidApp>* engine = nullptr;
+    AndroidApp* app = nullptr;
     bool initialized = false;
 };
 
@@ -311,15 +316,37 @@ void android_main(android_app* app) {
 
     LOGI("Entering main event loop");
 
+    // Store pointer to AndroidApp for sensor access
+    AndroidApp* androidApp = nullptr;
+
     while (true) {
         int events;
         android_poll_source* source;
 
+        LOGI("Before pollOnce, initialized=%d", ctx.initialized);
         int id = ALooper_pollOnce(ctx.initialized ? 0 : -1, nullptr, &events, (void**)&source);
+        LOGI("After pollOnce, id=%d", id);
+        
         if (id == ALOOPER_POLL_ERROR) {
             LOGE("pollOnce error!");
         } else if (source) {
             source->process(app, source);
+        }
+
+        // Handle sensor events - following native-activity sample pattern
+        if (id == LOOPER_ID_USER && androidApp) {
+            ASensorEvent event;
+            while (androidApp->sensorEventQueue && 
+                   ASensorEventQueue_getEvents(androidApp->sensorEventQueue, &event, 1) > 0) {
+                if (event.type == ASENSOR_TYPE_ROTATION_VECTOR || 
+                    event.type == ASENSOR_TYPE_GAME_ROTATION_VECTOR) {
+                    float qx = event.data[0], qy = event.data[1], qz = event.data[2], qw = event.data[3];
+                    androidApp->gyroRotation.x = asinf(2.0f * (qw * qy - qz * qx));
+                    androidApp->gyroRotation.z = atan2f(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx * qx + qy * qy));
+                    androidApp->gyroRotation.y = atan2f(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy * qy + qz * qz));
+                    LOGI("Gyro event: %f %f %f", androidApp->gyroRotation.x, androidApp->gyroRotation.y, androidApp->gyroRotation.z);
+                }
+            }
         }
 
         if (app->destroyRequested) {
@@ -328,13 +355,18 @@ void android_main(android_app* app) {
         }
 
         if (ctx.initialized && ctx.engine) {
+            // Get AndroidApp instance for sensor access
+            androidApp = &ctx.engine->GetApp();
+            
             ry_pump_touch_events();
             Core::Platform::Get().GetInput().Update();
 
+            LOGI("Before ExecuteFrame");
             if (!ctx.engine->ExecuteFrame()) {
                 LOGE("ExecuteFrame returned false!");
                 break;
             }
+            LOGI("After ExecuteFrame");
         } else {
             usleep(10000);
         }

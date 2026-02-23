@@ -46,6 +46,8 @@ public:
 
   void Shutdown();
 
+  AppType& GetApp() { return m_application; }
+
   Context context;
 
 private:
