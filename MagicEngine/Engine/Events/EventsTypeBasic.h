@@ -46,6 +46,8 @@ namespace Events {
 	// Consumed by: NiceThrow
 	struct Game_NiceThrow {};
 
+	struct Game_ScoreUpdate { float score{}; };
+
 }
 
 namespace Getters {

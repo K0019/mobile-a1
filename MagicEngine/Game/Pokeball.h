@@ -23,6 +23,7 @@ public:
 
 	// Optional audio source entity to play sound when a target is hit
 	EntityReference hitSoundSource;
+	EntityReference scoreBoard;
 
 private:
 	bool isThrown;

@@ -1,5 +1,6 @@
 {
     "scenes": [
-        "scenes/defaultscene.scene"
+        "scenes/defaultscene.scene",
+        "scenes/new scene.scene"
     ]
 }
