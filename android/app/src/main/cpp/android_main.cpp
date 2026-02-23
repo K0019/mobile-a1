@@ -39,9 +39,8 @@ class AndroidApp {
     MagicEngine engine;
     uint64_t sceneFeatureHandle_ = 0;
     uint64_t ui2dFeatureHandle_ = 0;
+    ASensorEventQueue* sensorEventQueue = nullptr;
 
-    // For device rotation events
-    ASensorEventQueue* sensorEventQueue;
 public:
     void Initialize(Context& context) {
         engine.Init(context, true);  // Start in game mode on Android
@@ -64,15 +63,19 @@ public:
             }
         }
 
-        // Register device rotation sensor
         ASensorManager* sensorManager = ASensorManager_getInstance();
         const ASensor* rotationSensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ROTATION_VECTOR);
 
-        ALooper* looper = Core::Platform::Get().GetAndroidApp()->looper;
-        sensorEventQueue = ASensorManager_createEventQueue(sensorManager, looper, LOOPER_ID_USER, NULL, NULL);
-
-        ASensorEventQueue_enableSensor(sensorEventQueue, rotationSensor);
-        ASensorEventQueue_setEventRate(sensorEventQueue, rotationSensor, 16666); // 60hz update
+        if (rotationSensor && Core::Platform::Get().GetAndroidApp()) {
+            ALooper* looper = Core::Platform::Get().GetAndroidApp()->looper;
+            sensorEventQueue = ASensorManager_createEventQueue(sensorManager, looper, LOOPER_ID_USER, NULL, NULL);
+            ASensorEventQueue_enableSensor(sensorEventQueue, rotationSensor);
+            ASensorEventQueue_setEventRate(sensorEventQueue, rotationSensor, 16666);
+            LOGI("Gyroscope sensor initialized");
+        } else {
+            sensorEventQueue = nullptr;
+            LOGI("Gyroscope sensor not available");
+        }
     }
 
     void Update(Context& context, RenderFrameData& frame)
@@ -94,17 +97,16 @@ public:
             frame.presentedViewId = gameView.viewId;
         }
 
-        // Gyroscope
+        // Gyroscope: read rotation vector sensor events
         ASensorEvent event;
-        while (ASensorEventQueue_getEvents(sensorEventQueue, &event, 1) > 0)
-            if (event.type == ASENSOR_TYPE_ROTATION_VECTOR)
-            {
+        while (sensorEventQueue && ASensorEventQueue_getEvents(sensorEventQueue, &event, 1) > 0) {
+            if (event.type == ASENSOR_TYPE_ROTATION_VECTOR) {
                 float qx = event.data[0], qy = event.data[1], qz = event.data[2], qw = event.data[3];
-                // Convert quaternion to Euler angles (radians)
                 frame.gyroRotation.x = asinf(2.0f * (qw * qy - qz * qx));
                 frame.gyroRotation.z = atan2f(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx * qx + qy * qy));
                 frame.gyroRotation.y = atan2f(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy * qy + qz * qz));
             }
+        }
 
         engine.ExecuteFrame(frame);
     }
