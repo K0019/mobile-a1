@@ -64,8 +64,4 @@ void GyroCameraSystem::UpdateComp([[maybe_unused]] GyroCameraComponent& gyroComp
 	// Convert delta to degrees and add to scene-authored base rotation.
 	Vec3 finalRotation = baseRotation + math::ToDegrees(-delta); // Everything's flipped it seems
 	ecs::GetEntityTransform(&camComp).SetWorldRotation(finalRotation);
-
-	static int frame = 0;
-	if (++frame % 100 == 0)
-		CONSOLE_LOG(LEVEL_INFO) << ecs::GetEntityTransform(&camComp).GetWorldRotation();
 }
