@@ -176,7 +176,7 @@ afterEvaluate {
 // ---------------------------------------------------------------------------
 
 android {
-    namespace 'com.magicengine.kurorekishi'
+    namespace 'com.magicengine.mobilea1'
     compileSdk 34
 
     defaultConfig {
