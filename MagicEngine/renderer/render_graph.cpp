@@ -1276,10 +1276,6 @@ bindings(Blit, start=0) {
   texture sampler2D uSourceTexture;
 }
 
-push_constant BlitData {
-  uint preTransform; // 0=Identity, 1=Rotate90, 2=Rotate180, 3=Rotate270
-} pc;
-
 struct Varyings {
   vec2 uv;
 };
@@ -1303,16 +1299,7 @@ Varyings VSMain() {
 #hina_stage fragment entry FSMain
 FragOut FSMain(Varyings in) {
   FragOut out;
-  vec2 transformedUV = in.uv;
-  // Transform UV coordinates based on Android pre-rotation
-  if (pc.preTransform == 1u) { // Rotate90
-    transformedUV = vec2(in.uv.y, 1.0 - in.uv.x);
-  } else if (pc.preTransform == 2u) { // Rotate180
-    transformedUV = vec2(1.0 - in.uv.x, 1.0 - in.uv.y);
-  } else if (pc.preTransform == 3u) { // Rotate270
-    transformedUV = vec2(1.0 - in.uv.y, in.uv.x);
-  }
-  out.color = texture(uSourceTexture, transformedUV);
+  out.color = texture(uSourceTexture, in.uv);
   return out;
 }
 #hina_end
@@ -1506,27 +1493,6 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   uint32_t windowWidth = m_gfxRenderer ? m_gfxRenderer->getWidth() : swapchainDims.width;
   uint32_t windowHeight = m_gfxRenderer ? m_gfxRenderer->getHeight() : swapchainDims.height;
 
-  // Get pre-transform for Android
-  uint32_t preTransformValue = 0; // 0 = Identity
-#if defined(__ANDROID__)
-  gfx::SurfaceTransform transform = hinaCtx->getSwapchainPreTransform();
-  switch (transform)
-  {
-    case gfx::SurfaceTransform::Rotate90:
-      preTransformValue = 1;
-      break;
-    case gfx::SurfaceTransform::Rotate180:
-      preTransformValue = 2;
-      break;
-    case gfx::SurfaceTransform::Rotate270:
-      preTransformValue = 3;
-      break;
-    default:
-      preTransformValue = 0;
-      break;
-  }
-#endif
-
   // Calculate letterbox/pillarbox viewport to maintain aspect ratio.
   // Use WINDOW aspect ratio (actual presentation target) rather than swapchain dimensions,
   // since swapchain may be suboptimal with stale dimensions on some drivers.
@@ -1559,7 +1525,7 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   // This avoids incorrect stretching when swapchain is suboptimal (stale dimensions).
   bool dimensionsMatch = (viewDims.width == swapchainDims.width && viewDims.height == swapchainDims.height &&
                           swapchainDims.width == windowWidth && swapchainDims.height == windowHeight);
-  if (preTransformValue == 0 && dimensionsMatch)
+  if (dimensionsMatch)
   {
     // Use hina blit for copy to swapchain
     hina_cmd_blit_texture(ctx.GetCmd(), viewOutput, swapchainImage, 0, 0, HINA_FILTER_NEAREST);
@@ -1609,12 +1575,6 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   hina_transient_write_combined_image(&tbg, 0, sourceView, m_blitSampler.get());
   hina_cmd_bind_transient_group(ctx.GetCmd(), 0, tbg);
 
-  struct BlitPushConstants {
-    uint32_t preTransform; // 0=Identity, 1=Rotate90, 2=Rotate180, 3=Rotate270
-  } pc = {
-    .preTransform = preTransformValue
-  };
-  gfxCmd.pushConstants(pc);
   gfxCmd.draw(3);
 
   gfxCmd.endRendering();
@@ -1708,11 +1668,6 @@ void RenderGraph::ExecuteResolveViewOutput(const internal::ExecutionContext& ctx
     hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_blitBindGroupLayout.get());
     hina_transient_write_combined_image(&tbg, 0, sourceView, m_blitSampler.get());
     hina_cmd_bind_transient_group(cmd, 0, tbg);
-
-    struct BlitPushConstants {
-      uint32_t preTransform;
-    } pc = {.preTransform = 0};
-    hina_cmd_push_constants(cmd, 0, sizeof(pc), &pc);
   }
 
   hina_cmd_draw(cmd, 3, 1, 0, 0);

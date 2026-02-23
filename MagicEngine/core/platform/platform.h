@@ -173,6 +173,12 @@ namespace Core {
             return m_input;
         }
 
+        #if PLATFORM_ANDROID
+        struct android_app* GetAndroidApp() {
+            return m_androidApp;
+        }
+        #endif
+
         void ProcessEvents() {
 #if PLATFORM_DESKTOP
             glfwPollEvents();
