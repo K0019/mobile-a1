@@ -332,6 +332,11 @@ GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, /)
 
 #pragma region Vec4
 
+inline constexpr Vec4::Vec4(float scalar)
+	: glm::vec4{ scalar }
+{
+}
+
 inline constexpr Vec4::Vec4(float x, float y, float z, float w)
 	: glm::vec4{ x, y, z, w }
 {

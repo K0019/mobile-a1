@@ -17,22 +17,22 @@ bool GyroCameraSystem::PreRun()
 {
 	while (auto gyroEvent{ orientationReader.ExtractEvent() })
 	{
-		const Vec3& rot = gyroEvent->rotation;
+		const glm::quat& rot = gyroEvent->rotation;
 
 		// Skip zero-initialized events — Engine.cpp dispatches GyroRotation
 		// every frame, but the first frame(s) may fire before the sensor has
 		// produced any real data, leaving gyroRotation at default (0,0,0).
 		// Capturing (0,0,0) as the reference would make every subsequent
 		// delta equal the phone's absolute orientation instead of relative.
-		if (rot.x == 0.0f && rot.y == 0.0f && rot.z == 0.0f)
+		if (rot.x == 0.0f && rot.y == 0.0f && rot.z == 0.0f && rot.w == 0.0f)
 			continue;
 
-		currentSensorEuler = rot; // radians from android_main.cpp
+		currentSensorQuat = rot; // radians from android_main.cpp
 
 		// Capture first real reading as reference zero-point.
 		if (!hasReference)
 		{
-			referenceSensorEuler = currentSensorEuler;
+			referenceSensorQuat = currentSensorQuat;
 			hasReference = true;
 		}
 	}
@@ -51,13 +51,21 @@ void GyroCameraSystem::UpdateComp([[maybe_unused]] GyroCameraComponent& gyroComp
 	if (!hasReference)
 		return; // No sensor data yet.
 
-	// Compute delta from reference (in radians), handling wrap-around.
+	// Calculate the rotation difference between quaternions
+	glm::quat diffQuat{ currentSensorQuat * glm::conjugate(referenceSensorQuat) };
+
+	// Compute delta from reference (in radians).
+	float qx{ diffQuat.x }, qy{ diffQuat.y }, qz{ diffQuat.z }, qw{ diffQuat.w };
 	Vec3 delta;
-	delta.x = WrapDelta(currentSensorEuler.x - referenceSensorEuler.x); // pitch
-	delta.y = WrapDelta(currentSensorEuler.y - referenceSensorEuler.y); // yaw
-	delta.z = WrapDelta(currentSensorEuler.z - referenceSensorEuler.z); // roll
+	delta.x = asinf(2.0f * (qw * qy - qz * qx)); // Pitch
+	delta.y = atan2f(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy * qy + qz * qz)); // Yaw
+	delta.z = atan2f(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx * qx + qy * qy)); // Roll
 
 	// Convert delta to degrees and add to scene-authored base rotation.
-	Vec3 finalRotation = baseRotation + math::ToDegrees(delta);
+	Vec3 finalRotation = baseRotation + math::ToDegrees(-delta); // Everything's flipped it seems
 	ecs::GetEntityTransform(&camComp).SetWorldRotation(finalRotation);
+
+	static int frame = 0;
+	if (++frame % 100 == 0)
+		CONSOLE_LOG(LEVEL_INFO) << ecs::GetEntityTransform(&camComp).GetWorldRotation();
 }

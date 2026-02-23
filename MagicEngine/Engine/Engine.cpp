@@ -169,7 +169,7 @@ void MagicEngine::ExecuteFrame(RenderFrameData& frameData)
 
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
-	ST<EventsQueue>::Get()->AddEventForThisFrame(Events::GyroRotation{ frameData.gyroRotation });
+	ST<EventsQueue>::Get()->AddEventForThisFrame(Events::GyroRotation{ glm::quat{ frameData.gyroRotation.x, frameData.gyroRotation.y, frameData.gyroRotation.z, frameData.gyroRotation.w } });
 
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();

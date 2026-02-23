@@ -43,7 +43,7 @@ class AndroidApp {
     
 public:
     ASensorEventQueue* sensorEventQueue = nullptr;
-    glm::vec3 gyroRotation = glm::vec3(0.0f);
+    glm::vec4 gyroRotation = glm::vec4(0.0f);
 
     void Initialize(Context& context) {
         engine.Init(context, true);  // Start in game mode on Android
@@ -323,10 +323,7 @@ void android_main(android_app* app) {
         int events;
         android_poll_source* source;
 
-        LOGI("Before pollOnce, initialized=%d", ctx.initialized);
         int id = ALooper_pollOnce(ctx.initialized ? 0 : -1, nullptr, &events, (void**)&source);
-        LOGI("After pollOnce, id=%d", id);
-        
         if (id == ALOOPER_POLL_ERROR) {
             LOGE("pollOnce error!");
         } else if (source) {
@@ -341,10 +338,10 @@ void android_main(android_app* app) {
                 if (event.type == ASENSOR_TYPE_ROTATION_VECTOR || 
                     event.type == ASENSOR_TYPE_GAME_ROTATION_VECTOR) {
                     float qx = event.data[0], qy = event.data[1], qz = event.data[2], qw = event.data[3];
-                    androidApp->gyroRotation.x = asinf(2.0f * (qw * qy - qz * qx));
-                    androidApp->gyroRotation.z = atan2f(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx * qx + qy * qy));
-                    androidApp->gyroRotation.y = atan2f(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy * qy + qz * qz));
-                    LOGI("Gyro event: %f %f %f", androidApp->gyroRotation.x, androidApp->gyroRotation.y, androidApp->gyroRotation.z);
+                    androidApp->gyroRotation = Vec4(qx, qy, qz, qw);
+                    //androidApp->gyroRotation.x = asinf(2.0f * (qw * qy - qz * qx));
+                    //androidApp->gyroRotation.z = atan2f(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx * qx + qy * qy));
+                    //androidApp->gyroRotation.y = atan2f(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy * qy + qz * qz));
                 }
             }
         }
@@ -361,12 +358,10 @@ void android_main(android_app* app) {
             ry_pump_touch_events();
             Core::Platform::Get().GetInput().Update();
 
-            LOGI("Before ExecuteFrame");
             if (!ctx.engine->ExecuteFrame()) {
                 LOGE("ExecuteFrame returned false!");
                 break;
             }
-            LOGI("After ExecuteFrame");
         } else {
             usleep(10000);
         }

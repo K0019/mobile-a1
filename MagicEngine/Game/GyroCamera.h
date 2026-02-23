@@ -25,10 +25,10 @@ private:
 
 private:
 	// Latest sensor Euler angles (radians) from the event stream.
-	Vec3 currentSensorEuler{0.0f};
+	glm::quat currentSensorQuat{};
 
 	// First sensor reading — used as the zero-point for deltas.
-	Vec3 referenceSensorEuler{0.0f};
+	glm::quat referenceSensorQuat{};
 	bool hasReference = false;
 
 	// Camera's scene-authored rotation (degrees) captured before we touch it.

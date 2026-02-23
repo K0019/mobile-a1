@@ -40,7 +40,7 @@ namespace Events {
 
 	struct GyroRotation
 	{
-		Vec3 rotation;
+		glm::quat rotation;
 	};
 
 	// Consumed by: NiceThrow
