@@ -1,6 +1,25 @@
 {
     "files": [
         {
+            "filepath": "compiledassets/null.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/null.png",
+            "sourceTimestamp": 134163247451649451,
+            "compiledTimestamp": 17719146165364985,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 176511198912661639,
+                            "name": "null0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/main menu bg.ktx2",
             "assetType": "Texture",
             "sourcePath": "images/main menu bg.png",
@@ -190,6 +209,25 @@
                         {
                             "hash": 103411267631782623,
                             "name": "material.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pokeball.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/pokeball.png",
+            "sourceTimestamp": 134163881055028668,
+            "compiledTimestamp": 17719146183634464,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 180165975563390889,
+                            "name": "pokeball0"
                         }
                     ]
                 }
