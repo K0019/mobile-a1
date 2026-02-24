@@ -375,6 +375,7 @@ void android_main(android_app* app) {
     }
 
     Core::Platform::Get().Shutdown();
+    ANativeActivity_finish(app->activity);
     LOGI("===== android_main exiting =====");
 }
 
