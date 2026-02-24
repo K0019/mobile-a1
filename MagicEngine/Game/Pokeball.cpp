@@ -198,7 +198,7 @@ void PokeballThrowSystem::UpdateComp(PokeballComponent& comp)
         return;
 
     Vec2 swipeDir{ pos - downPos };
-    if (swipeDir.LengthSqr() <= std::numeric_limits<float>::epsilon())
+    if (swipeDir.LengthSqr() <= std::numeric_limits<float>::epsilon() || swipeDir.LengthSqr() > 1e10f)
         return;
     swipeDir = -swipeDir * 0.01f; // Window dir is flipped
 
