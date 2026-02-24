@@ -237,10 +237,10 @@ namespace ui
         glyph.codepoint = job.glyphCodepoints[i];
         glyph.uvMin = vec2(glyphData.x0 / static_cast<float>(atlasDim), glyphData.y0 / static_cast<float>(atlasDim));
         glyph.uvMax = vec2(glyphData.x1 / static_cast<float>(atlasDim), glyphData.y1 / static_cast<float>(atlasDim));
-        glyph.sizePx = vec2(static_cast<float>(glyphData.x1 - glyphData.x0),
-                            static_cast<float>(glyphData.y1 - glyphData.y0));
-        glyph.bearingPx = vec2(glyphData.xoff, glyphData.yoff);
-        glyph.advancePx = glyphData.xadvance;
+        glyph.sizePx = vec2(static_cast<float>(glyphData.x1 - glyphData.x0) * 7,
+                            static_cast<float>(glyphData.y1 - glyphData.y0) * 7 );
+        glyph.bearingPx = vec2(glyphData.xoff * 7, glyphData.yoff * 7);
+        glyph.advancePx = glyphData.xadvance * 7;
         if (job.settings.glyphMinAdvanceX > 0.0f)
         {
           glyph.advancePx = (std::max)(glyph.advancePx, job.settings.glyphMinAdvanceX);
