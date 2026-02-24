@@ -42,6 +42,7 @@ namespace Events {
 	{
 		glm::quat rotation;
 	};
+	struct GyroReset {};
 
 	// Consumed by: NiceThrow
 	struct Game_NiceThrow {};

@@ -36,6 +36,10 @@ bool GyroCameraSystem::PreRun()
 			hasReference = true;
 		}
 	}
+
+	if (resetRequestReader.ExtractEvent())
+		referenceSensorQuat = currentSensorQuat;
+
 	return true;
 }
 

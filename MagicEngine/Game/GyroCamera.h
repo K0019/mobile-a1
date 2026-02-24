@@ -36,4 +36,5 @@ private:
 	bool hasBaseRotation = false;
 
 	EventsReader<Events::GyroRotation> orientationReader;
+	EventsReader<Events::GyroReset> resetRequestReader;
 };

@@ -595,6 +595,10 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("RangeVec3", Lua_RandomRangeVec)
 		.endNamespace()
 
+		.beginNamespace("Game")
+			.addFunction("ResetGyro", Lua_SimpleQueueEventNextFrame<Events::GyroReset>)
+		.endNamespace()
+
 
 		// ----- GLOBAL VARIABLES -----
 		.beginNamespace("LogLevel")
