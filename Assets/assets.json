@@ -139,6 +139,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/title.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/title.png",
+            "sourceTimestamp": 134163847659113253,
+            "compiledTimestamp": 17719113345031336,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 113178229637852351,
+                            "name": "title0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/start button.ktx2",
             "assetType": "Texture",
             "sourcePath": "images/start button.png",
