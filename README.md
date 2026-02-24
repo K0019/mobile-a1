@@ -23,7 +23,7 @@ For Android builds, also install:
 ```bat
 :: 1. Clone with submodules
 git clone --recursive <repo-url>
-cd gam300-magic
+cd mobile-a1
 
 :: 2. Run setup (initializes submodules, bootstraps vcpkg, generates VS solution)
 setup.bat
@@ -52,7 +52,7 @@ which converts textures to mobile-compatible ASTC format.
 ```bat
 :: 1. Clone with submodules
 git clone --recursive <repo-url>
-cd gam300-magic
+cd mobile-a1
 
 :: 2. Build AssetCompiler (desktop CMake build)
 mkdir build && cd build
@@ -112,7 +112,7 @@ setup.bat android debug --no-menu
 ## Project Structure
 
 ```
-gam300-magic/
+mobile-a1/
   CMakeLists.txt        Main build configuration
   setup.bat             Interactive build script (Windows + Android)
   vcpkg.json            Desktop dependencies (assimp, freeimage, ktx, etc.)
