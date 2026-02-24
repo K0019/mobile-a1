@@ -14,6 +14,8 @@
 #include "Game/GyroCamera.h"
 #include "Engine/Audio.h"
 
+#include "Engine/EntityEvents.h"
+
 PokeballComponent::PokeballComponent()
     : isThrown{}
     , launchTime{}
@@ -76,6 +78,10 @@ void PokeballComponent::RandomizeIdleSpin()
 void PokeballComponent::OnTargetHit(ecs::EntityHandle targetEntity)
 {
     CONSOLE_LOG(LEVEL_INFO) << "TARGET HIT!";
+
+    float randomVal = (randomFloat(1.0f, 10.0f) * 10);
+    ST<EventsQueue>::Get()->AddEventForNextFrame(Events::Game_ScoreUpdate{ randomVal});
+
     ecs::DeleteEntity(targetEntity);
     ST<EventsQueue>::Get()->AddEventForNextFrame(Events::Game_NiceThrow{});
 

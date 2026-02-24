@@ -39,6 +39,7 @@
 #include "Game/Target.h"
 #include "Game/NiceThrow.h"
 #include "Game/GyroCamera.h"
+#include "Game/TextUI.h"
 
 void RegisterShit()
 {
@@ -79,6 +80,7 @@ void RegisterShit()
 	IRegisteredComponent<PositionRandomizerComponent>::RegisterComponent();
 	IRegisteredComponent<NiceThrowComponent>::RegisterComponent();
 	IRegisteredComponent<GyroCameraComponent>::RegisterComponent();
+	IRegisteredComponent<TextUIComponent>::RegisterComponent();
 }
 
 void PreloadShit()

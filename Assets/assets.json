@@ -1,6 +1,25 @@
 {
     "files": [
         {
+            "filepath": "compiledassets/main menu bg.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/main menu bg.png",
+            "sourceTimestamp": 134163801871417998,
+            "compiledTimestamp": 17719092772071559,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 112979217813888771,
+                            "name": "main menu bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/unitbox.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -86,6 +105,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/exit button.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/exit button.png",
+            "sourceTimestamp": 134163801871314468,
+            "compiledTimestamp": 17719091669096255,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 100887888443125799,
+                            "name": "exit button0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/nice shot! wii sports - quicksounds.com.mp3",
             "assetType": "Audio",
             "resources": [
@@ -95,6 +133,25 @@
                         {
                             "hash": 1616175418136114593,
                             "name": "nice shot! wii sports - quicksounds.com0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/start button.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/start button.png",
+            "sourceTimestamp": 134163801871417998,
+            "compiledTimestamp": 17719091642331065,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 97156145978451377,
+                            "name": "start button0"
                         }
                     ]
                 }

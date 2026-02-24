@@ -312,6 +312,64 @@
         {
             "parentIndex": -1,
             "position": {
+                "x": 1714.0030517578125,
+                "y": 702.2874755859375,
+                "z": 3.5
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 300.0,
+                "y": 150.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Reset Gyro"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 247725467310587525
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 1,
+                    "primitive": {},
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "reset_gyro.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
                 "x": 250.0,
                 "y": 150.0,
                 "z": 0.0
@@ -381,7 +439,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "New Entity"
+                    "name": "Quit"
                 },
                 "9315785795257285655": {
                     "_active": true,
